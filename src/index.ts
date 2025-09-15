@@ -263,6 +263,7 @@ export function apply(ctx: Context, config: any) {
         config.acsCommandName,
         "名人名言图片样式列表"
     )
+        .alias("acs")
         .action(async ({ session }) => {
             let msg = '名人名言——' + config.aqtCommandName + '指令 的 图片样式列表：\n';
             // for (let i = 0; i < IMAGE_STYLE_VALUES.length; i++) {
@@ -282,6 +283,7 @@ export function apply(ctx: Context, config: any) {
                 config.aqtCommandName,
                 "回复/引用某个群u说的话, 制作名人名言图片"
             )
+                .alias("aqt")
                 .option("imageStyleIdx", "-i, --idx, --index <idx:number> 图片样式索引")
                 .option("enableDarkMode", "-d, --dark, --darkmode <enableDarkMode:string> 启用深色模式")
                 .option("verbose", "-v, --verbose 在session和console打印详细参数信息")
