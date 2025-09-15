@@ -89,12 +89,12 @@ export const Config = Schema.intersect([
     Schema.object({
         acsCommandName: Schema
             .string()
-            .default('acs')
-            .description('awa_check_style 查看图片样式列表 命令名称'),
+            .default('名人名言图片样式列表')
+            .description('awa_check_style acs 查看图片样式列表 命令名称'),
         aqtCommandName: Schema
             .string()
-            .default('aqt')
-            .description('awa_quote 制作名人名言图片 命令名称'),
+            .default('名人名言')
+            .description('awa_quote aqt 制作名人名言图片 命令名称'),
     }).description('基础配置 ⚙️'),
 
     Schema.object({
@@ -261,12 +261,16 @@ export function apply(ctx: Context, config: any) {
     // 立即注册 acs 指令
     ctx.command(
         config.acsCommandName,
-        "查看图片样式列表"
+        "名人名言图片样式列表"
     )
         .action(async ({ session }) => {
             let msg = '名人名言——' + config.aqtCommandName + '指令 的 图片样式列表：\n';
-            for (let i = 0; i < IMAGE_STYLE_VALUES.length; i++) {
-                msg += `\t【${i}】: ${IMAGE_STYLE_KEYS[i]} -> ${IMAGE_STYLE_VALUES[i]}\n`;
+            // for (let i = 0; i < IMAGE_STYLE_VALUES.length; i++) {
+            //     msg += `\t【${i}】: ${IMAGE_STYLE_KEYS[i]} -> ${IMAGE_STYLE_VALUES[i]}\n`;
+            // }
+            for ( let i=0; i<config.imageStyleDetails.length; i++ ){
+                const o = config.imageStyleDetails[i];
+                msg += `\t 【${i}】: ${IMAGE_STYLES[o.styleKey]} ${o.darkMode ? '深色模式' : '浅色模式' } (${o.styleKey}) \n`
             }
             await session.send(msg);
         });
@@ -383,7 +387,7 @@ export function apply(ctx: Context, config: any) {
         const res = await renderQuoteImage(
             ctx,
             {
-                sentence: session.quote.content,                username: usernameArg,                                  avatarBase64: avatar_base64,
+                sentence: session.quote.content,                username: usernameArg,                                  userId: session.quote.user.id,   avatarBase64: avatar_base64,
                 width: config.imageWidth,                       minHeight: config.imageMinHeight,
                 selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64,                                enableDarkMode: selectedEnableDarkMode,
                 imageType: config.imageType,                    pageScreenshotquality: config.PageScreenshotquality,
