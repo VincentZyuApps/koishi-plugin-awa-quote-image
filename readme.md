@@ -1,15 +1,16 @@
 # 🎭 koishi-plugin-awa-quote-image
 
-[![npm](https://img.shields.io/npm/v/koishi-plugin-awa-quote?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-awa-quote)
+[![npm](https://img.shields.io/npm/v/koishi-plugin-awa-quote-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-awa-quote-image)
 
 🎨 把群u的名人名言发言渲染成图片！✨
 
 ## 🚀 功能介绍
 
-这是一个 Koishi 插件，可以将群友的发言制作成精美的名人名言图片。支持多种图片样式，让你的群聊更加有趣！🎉
+Koishi 插件，回复一条消息，渲染"名人名言"图片。支持多种图片样式，让你的群聊更加有趣！🎉
 
 ## 更新日志
 > 0.1.2: 新增 图片中强制展示userId，防止有人伪造聊天记录造成不良后果
+> 前面的: 忘了awa，反正你看到的features都是前面更新的
 
 ## 📖 使用方法
 
@@ -21,8 +22,11 @@ acs
 
 显示所有可用的图片样式：
 - 【0】: 原始_黑底白字 ⚫
+![aqt_black.png](aqt_black.png)
 - 【1】: 现代_思源宋体 (磨砂玻璃效果) ✨
+![aqt_source.png](aqt_source.png)
 - 【2】: 简洁_落霞孤鹜文楷 (扁平化设计) 🎨
+![aqt_lxgw.png](aqt_lxgw.png)
 
 ### 2. 🖼️ 制作名人名言图片
 
