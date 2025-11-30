@@ -358,7 +358,8 @@ export function apply(ctx: Context, config: any) {
         }
 
 
-        const session_user_obj = await session.bot.getUser(session.quote.user.id, session.quote.guild.id);
+        // const session_user_obj = await session.bot.getUser(session.quote.user.id, session.quote.guild.id);
+        const session_user_obj = await session.bot.getUser(session.quote.user.id, session.quote.channel.id);
         let usernameArg = session_user_obj.name;
         if ( config.addOnebotGroupCard && session.onebot ){
             const onebot_groupmember_obj = await session.onebot.getGroupMemberInfo(session.quote.guild.id, session.quote.user.id);
