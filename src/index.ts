@@ -24,6 +24,9 @@ const pkg = JSON.parse(
 export const usage = `
 <h1>🎭 Koishi 插件: 群u的名人名言 ${PLUGIN_NAME} 🎭</h1>
 <h2>🎯 插件版本：v${pkg.version}</h2>
+
+<h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
+
 <p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b> 🎉</p>
 
 <hr>
@@ -133,6 +136,11 @@ export const Config = Schema.intersect([
                 {
                     styleKey: IMAGE_STYLE_KEY_ARR[0],
                     fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+                    darkMode: false,
+                },
+                {
+                    styleKey: IMAGE_STYLE_KEY_ARR[0],
+                    fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
                     darkMode: true,
                 },
                 {
@@ -141,9 +149,19 @@ export const Config = Schema.intersect([
                     darkMode: false,
                 },
                 {
+                    styleKey: IMAGE_STYLE_KEY_ARR[1],
+                    fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+                    darkMode: true,
+                },
+                {
                     styleKey: IMAGE_STYLE_KEY_ARR[2],
                     fontPath: path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'),
                     darkMode: false,
+                },
+                {
+                    styleKey: IMAGE_STYLE_KEY_ARR[2],
+                    fontPath: path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'),
+                    darkMode: true,
                 },
             ])
             .description("默认使用的图片样式。第一行是使用的默认配置，其余的会忽略。指定配置请使用aqt -i参数"),
