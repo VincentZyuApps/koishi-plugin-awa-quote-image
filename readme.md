@@ -1,8 +1,21 @@
 # 🎭 koishi-plugin-awa-quote-image
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-awa-quote-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-awa-quote-image)
+[![npm-download](https://img.shields.io/npm/dm/koishi-plugin-awa-quote-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-awa-quote-image)
 
 🎨 把群u的名人名言发言渲染成图片！✨
+
+## ⚠️ 重要提示
+
+**🔴 本插件需要启用 `puppeteer` 和 `http` 服务才能正常使用！**
+
+请确保在 Koishi 控制台中已经安装并启用了以下插件：
+- 📦 `puppeteer` - 用于渲染图片
+- 🌐 `http` - 用于网络请求
+
+如果没有安装这两个插件，本插件将无法工作！
+
+---
 
 ## 🚀 功能介绍
 

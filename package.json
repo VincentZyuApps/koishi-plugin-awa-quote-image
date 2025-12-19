@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-awa-quote-image",
   "description": "",
-  "version": "0.1.2-rc.3+20251211",
+  "version": "0.1.2-rc.4+20251211",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
