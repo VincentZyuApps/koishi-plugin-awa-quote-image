@@ -15,6 +15,9 @@
 
 如果没有安装这两个插件，本插件将无法工作！
 
+### 字体手动下载链接：
+[https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts)
+
 ---
 
 ## 🚀 功能介绍
