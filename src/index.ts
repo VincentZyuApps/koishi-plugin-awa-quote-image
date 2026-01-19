@@ -344,11 +344,11 @@ export function apply(ctx: Context, config: any) {
         if (options.imageStyleIdx !== undefined) {
             // 发现传了index，那么进行index参数校验
             const isIdxValid: boolean = (options.imageStyleIdx as number) >= 0
-                && (options.imageStyleIdx as number) < IMAGE_STYLE_VALUES.length;
+                && (options.imageStyleIdx as number) < config.imageStyleDetails.length;
             if (!isIdxValid) {
                 let idxInvalidMsgArr = [
                     `图片样式索引不合法。`,
-                    `\t 合法范围：[0, ${IMAGE_STYLE_VALUES.length - 1}]双闭区间。`,
+                    `\t 合法范围：[0, ${config.imageStyleDetails.length - 1}]双闭区间。`,
                     `\t 当前输入：${options.imageStyleIdx}`,
                     `\n`,
                     `大笨蛋？输入指令 ${config.acsCommandName} 查看图片样式列表(*╹▽╹*)。`
