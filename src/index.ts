@@ -27,7 +27,12 @@ export const usage = `
 
 <h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
 
-<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b> 🎉</p>
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了</del> </p> 
+<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
+<p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
+
+
+<h2 style="color: #ff4444; font-weight: 900; font-size: 22px; margin: 20px 0; border: 2px solid #ff4444; padding: 12px; border-radius: 8px; background: rgba(255,68,68,0.08);">🚨 强烈建议保持开启「显示用户 ID」和「显示时间戳」！<br>防止有人换头像、改名字伪造聊天记录，关闭后果自负，与作者无关捏 ⚠️</h2>
 
 <hr>
 
@@ -83,6 +88,10 @@ export interface Config {
 
   /** 🎭 Onebot 平台用户名显示样式 */
   onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name'
+  /** 🆔 是否在图片中显示用户 ID */
+  showUserId: boolean
+  /** 🕐 是否在图片中显示时间戳 */
+  showTimestamp: boolean
   /** 💬 是否引用触发指令的消息 */
   enableQuote: boolean
   /** ⏳ 是否显示「渲染中，请等待...」提示 */
@@ -131,6 +140,14 @@ export const Config = Schema.intersect([
             .role('radio')
             .default('name-card')
             .description('🎭 Onebot 平台用户名显示样式（非 Onebot 平台始终显示用户名）'),
+        showUserId: Schema
+            .boolean()
+            .default(true)
+            .description('🆔 是否在图片中显示用户 ID —— **强烈建议保持开启**，防止换名换头像伪造聊天记录，关闭后果自负，与作者无关 ⚠️'),
+        showTimestamp: Schema
+            .boolean()
+            .default(true)
+            .description('🕐 是否在图片中显示时间戳 —— **强烈建议保持开启**，防止篡改时间伪造聊天记录，关闭后果自负，与作者无关 ⚠️'),
         enableQuote: Schema
             .boolean()
             .default(true)
@@ -458,6 +475,7 @@ export function apply(ctx: Context, config: any) {
                 width: config.imageWidth,                       minHeight: config.imageMinHeight,
                 selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64,                                enableDarkMode: selectedEnableDarkMode,
                 imageType: config.imageType,                    pageScreenshotquality: config.PageScreenshotquality,
+                showUserId: config.showUserId !== false,        showTimestamp: config.showTimestamp !== false,
             }
         );
         await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`)

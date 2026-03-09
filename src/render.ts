@@ -10,7 +10,9 @@ interface TemplateOptions {
     width: number;
     minHeight: number;
     fontBase64: string;
-    enableDarkMode: boolean; // 新增参数
+    enableDarkMode: boolean;
+    showUserId: boolean;
+    showTimestamp: boolean;
 }
 
 const getFontSize = (sentenceLength: number, baseSize: number, decreaseRate: number, threshold: number) =>
@@ -53,8 +55,8 @@ const getOriginBlackWhiteTemplateStr = async (options: TemplateOptions): Promise
         <div class="quote">
             <div class="sentence">"${options.sentence}"</div>
             <div class="username">—— ${options.username}</div>
-            <div class="userid">(userId:${options.userId})</div>
-            <div class="timestamp">${timestamp}</div>
+            ${options.showUserId ? `<div class="userid">(userId:${options.userId})</div>` : ''}
+            ${options.showTimestamp ? `<div class="timestamp">${timestamp}</div>` : ''}
         </div>
     </div>
 </body>
@@ -91,8 +93,8 @@ const getModernSourceHanSerifSCTemplateStr = async (options: TemplateOptions): P
         <div class="quote">
             <div class="sentence">"${options.sentence}"</div>
             <div class="username">—— ${options.username}</div>
-            <div class="userid">(userId:${options.userId})</div>
-            <div class="timestamp">${timestamp}</div>
+            ${options.showUserId ? `<div class="userid">(userId:${options.userId})</div>` : ''}
+            ${options.showTimestamp ? `<div class="timestamp">${timestamp}</div>` : ''}
         </div>
     </div>
 </body>
@@ -127,8 +129,8 @@ const getCleanLXGWWenkaiTemplateStr = async (options: TemplateOptions): Promise<
         <div class="quote">
             <div class="sentence">"${options.sentence}"</div>
             <div class="username">—— ${options.username}</div>
-            <div class="userid">(userId:${options.userId})</div>
-            <div class="timestamp">${timestamp}</div>
+            ${options.showUserId ? `<div class="userid">(userId:${options.userId})</div>` : ''}
+            ${options.showTimestamp ? `<div class="timestamp">${timestamp}</div>` : ''}
         </div>
     </div>
 </body>
@@ -144,6 +146,7 @@ export async function renderQuoteImage(
         width: number,                  minHeight: number,
         selectedStyle: ImageStyleKey,   fontBase64: string,             enableDarkMode: boolean,
         imageType: ImageType,           pageScreenshotquality: number,
+        showUserId: boolean,            showTimestamp: boolean,
     }
 ) {
     const browserPage = await ctx.puppeteer.page();
@@ -158,7 +161,9 @@ export async function renderQuoteImage(
             width: args.width,
             minHeight: args.minHeight,
             fontBase64: args.fontBase64,
-            enableDarkMode: args.enableDarkMode, // 传递enableDarkMode参数
+            enableDarkMode: args.enableDarkMode,
+            showUserId: args.showUserId,
+            showTimestamp: args.showTimestamp,
         };
 
         switch (args.selectedStyle) {
