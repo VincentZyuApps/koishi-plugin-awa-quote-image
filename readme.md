@@ -46,11 +46,11 @@ acs
 
 显示所有可用的图片样式：
 - 【0】: 原始_黑底白字 ⚫
-![docs/aqt_black.png](docs/aqt_black.png)
+![aqt_black](docs/aqt_black.png)
 - 【1】: 现代_思源宋体 (磨砂玻璃效果) ✨
-![docs/aqt_source.png](docs/aqt_source.png)
+![aqt_source](docs/aqt_source.png)
 - 【2】: 简洁_落霞孤鹜文楷 (扁平化设计) 🎨
-![docs/aqt_lxgw.png](docs/aqt_lxgw.png)
+![aqt_lxgw](docs/aqt_lxgw.png)
 
 ### 2. 🖼️ 制作名人名言图片
 
