@@ -1,17 +1,13 @@
 {
   "name": "koishi-plugin-awa-quote-image",
   "description": "",
-  "version": "0.1.5-beta.1+20260309",
+  "version": "0.1.5-beta.3+20260310",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
-    "src",
     "assets",
     "lib",
-    "dist",
-    "aqt_black.png",
-    "aqt_lxgw.png",
-    "aqt_source.png"
+    "docs"
   ],
   "license": "MIT",
   "homepage": "https://github.com/VincentZyu233/koishi-plugin-awa-quote-image",

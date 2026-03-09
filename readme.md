@@ -7,7 +7,11 @@
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image)
 
-🎨 把群u的名人名言发言渲染成图片！✨
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了</del> </p> 
+<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
+<p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
+
+# 🎨 把群u的名人名言发言渲染成图片！✨
 
 ## ⚠️ 重要提示
 
@@ -42,11 +46,11 @@ acs
 
 显示所有可用的图片样式：
 - 【0】: 原始_黑底白字 ⚫
-![aqt_black.png](aqt_black.png)
+![docs/aqt_black.png](docs/aqt_black.png)
 - 【1】: 现代_思源宋体 (磨砂玻璃效果) ✨
-![aqt_source.png](aqt_source.png)
+![docs/aqt_source.png](docs/aqt_source.png)
 - 【2】: 简洁_落霞孤鹜文楷 (扁平化设计) 🎨
-![aqt_lxgw.png](aqt_lxgw.png)
+![docs/aqt_lxgw.png](docs/aqt_lxgw.png)
 
 ### 2. 🖼️ 制作名人名言图片
 
