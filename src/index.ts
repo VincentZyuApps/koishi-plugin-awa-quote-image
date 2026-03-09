@@ -76,7 +76,7 @@ export interface Config {
 
   addOnebotGroupCard: boolean
   enableQuote: boolean
-  enableWaringHint: boolean
+  enableWatingHint: boolean
 
   imageStyleDetails: ImageStyleDetail[]
   imageWidth: number
@@ -108,8 +108,8 @@ export const Config = Schema.intersect([
         enableQuote: Schema
             .boolean()
             .default(true)
-            .description('是否启用引用'),
-        enableWaringHint: Schema
+            .description('bot发送消息的时候，是否引用 触发消息的指令'),
+        enableWatingHint: Schema
             .boolean()
             .default(true)
             .description('是否启用 渲染中，请等待...提示'),
@@ -328,7 +328,10 @@ export function apply(ctx: Context, config: any) {
             return;
         }
 
-        const waitingHintMsgId = await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}渲染中，请等待...`);
+
+        const waitingHintMsgId = config.enableWatingHint
+            ? await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}渲染中，请等待...`)
+            : null;
 
         const FALLBACK_STYLE_DETAIL_OBJ = {
             styleKey: IMAGE_STYLE_KEY_ARR[0],
@@ -392,7 +395,7 @@ export function apply(ctx: Context, config: any) {
         const font_base64 = await fileToBase64(selectedStyleDetailObj.fontPath);
 
         const argMsgArr = [
-            `${PLUGIN_NAME} 参数信息`,
+            `${config.enableQuote ? h.quote(session.messageId) : ''}${PLUGIN_NAME} 参数信息`,
             `\t 选中的图片样式细节: ${JSON.stringify(selectedStyleDetailObj)}`,
             `\t 选中的是否黑暗模式: ${selectedEnableDarkMode}`,
             `\t 用户名：${usernameArg}`,
@@ -415,9 +418,9 @@ export function apply(ctx: Context, config: any) {
                 imageType: config.imageType,                    pageScreenshotquality: config.PageScreenshotquality,
             }
         );
-        await session.send(`${h.image(`data:image/${config.imageType};base64,${res}`)}`)
+        await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`)
 
-        await session.bot.deleteMessage(session.guildId, waitingHintMsgId);
+        waitingHintMsgId && await session.bot.deleteMessage(session.guildId, waitingHintMsgId);
     }
 
     async function fileToBase64(filePath: string): Promise<string> {
