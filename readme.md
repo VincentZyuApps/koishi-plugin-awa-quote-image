@@ -4,6 +4,8 @@
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-awa-quote-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-awa-quote-image)
 [![npm-download](https://img.shields.io/npm/dm/koishi-plugin-awa-quote-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-awa-quote-image)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image)
+[![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image)
 
 🎨 把群u的名人名言发言渲染成图片！✨
 
