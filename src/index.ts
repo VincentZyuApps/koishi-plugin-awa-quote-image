@@ -64,57 +64,84 @@ export const usage = `
 <p>🙏 感谢所有开源字体与项目的贡献者 ❤️</p>
 `
 
+// 🎨 图片样式细节配置项
 export interface ImageStyleDetail {
+  /** 🖌️ 图片渲染样式 key */
   styleKey: ImageStyleKey
+  /** 📁 字体文件路径 */
   fontPath: string
+  /** 🌙 是否启用深色模式 */
   darkMode: boolean
 }
 
+// ⚙️ 插件全局配置接口
 export interface Config {
+  /** 📋 acs 指令名称 —— 查看图片样式列表 */
   acsCommandName: string
+  /** 🎨 aqt 指令名称 —— 制作名人名言图片 */
   aqtCommandName: string
 
-  addOnebotGroupCard: boolean
+  /** 🎭 Onebot 平台用户名显示样式 */
+  onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name'
+  /** 💬 是否引用触发指令的消息 */
   enableQuote: boolean
+  /** ⏳ 是否显示「渲染中，请等待...」提示 */
   enableWatingHint: boolean
 
+  /** 🖼️ 图片样式细节列表（table 配置） */
   imageStyleDetails: ImageStyleDetail[]
+  /** 📐 渲染图片宽度 */
   imageWidth: number
+  /** 📏 渲染图片最小高度 */
   imageMinHeight: number
+  /** 📤 输出图片类型 */
   imageType: ImageType
+  /** 🎚️ 截图质量参数 */
   PageScreenshotquality: number
 
+  /** 🐛 是否在会话中输出调试信息 */
   verboseSessionLog: boolean
+  /** 🐛 是否在控制台输出调试信息 */
   verboseConsoleLog: boolean
 }
 
+// 📝 配置项 Schema 定义
 export const Config = Schema.intersect([
+    // ─── 📌 基础配置 ───
     Schema.object({
         acsCommandName: Schema
             .string()
             .default('名人名言图片样式列表')
-            .description('awa_check_style acs 查看图片样式列表 命令名称'),
+            .description('📋 acs 指令名称 —— 查看图片样式列表'),
         aqtCommandName: Schema
             .string()
             .default('名人名言')
-            .description('awa_quote aqt 制作名人名言图片 命令名称'),
-    }).description('基础配置 ⚙️'),
+            .description('🎨 aqt 指令名称 —— 制作名人名言图片'),
+    }).description('📌 基础配置 ⚙️'),
 
+    // ─── 💬 会话设置 ───
     Schema.object({
-        addOnebotGroupCard: Schema
-            .boolean()
-            .default(false)
-            .description('是否添加Onebot群名片(仅对ontbot平台生效)'),
+        onebotNameStyle: Schema
+            .union([
+                Schema.const('name-only').description('🏷️ 只显示用户名'),
+                Schema.const('card-only').description('🪪 只显示群卡片【仅onebot】'),
+                Schema.const('name-card').description('🏷️🪪 用户名（群卡片）【仅onebot】'),
+                Schema.const('card-name').description('🪪🏷️ 群卡片（用户名）【仅onebot】'),
+            ])
+            .role('radio')
+            .default('name-card')
+            .description('🎭 Onebot 平台用户名显示样式（非 Onebot 平台始终显示用户名）'),
         enableQuote: Schema
             .boolean()
             .default(true)
-            .description('bot发送消息的时候，是否引用 触发消息的指令'),
+            .description('💬 bot 发送消息时，是否引用触发消息的指令'),
         enableWatingHint: Schema
             .boolean()
             .default(true)
-            .description('是否启用 渲染中，请等待...提示'),
-    }).description('会话设置 ⚙️'),
+            .description('⏳ 是否启用「渲染中，请等待...」提示消息'),
+    }).description('💬 会话设置 ⚙️'),
 
+    // ─── 🖼️ 图片渲染配置 ───
     Schema.object({
         imageStyleDetails: Schema
             .array(
@@ -122,13 +149,13 @@ export const Config = Schema.intersect([
                     styleKey: Schema
                         .union(IMAGE_STYLE_KEY_ARR.map((key) => Schema.const(key).description(IMAGE_STYLES[key])))
                         .role('radio')
-                        .description("图片样式"),
+                        .description("🖌️ 图片样式"),
                     fontPath: Schema
                         .string()
-                        .description("字体文件路径"),
+                        .description("📁 字体文件路径"),
                     darkMode: Schema
                         .boolean()
-                        .description("启用深色模式"),
+                        .description("🌙 启用深色模式"),
                 })
             )
             .role('table')
@@ -164,40 +191,44 @@ export const Config = Schema.intersect([
                     darkMode: true,
                 },
             ])
-            .description("默认使用的图片样式。第一行是使用的默认配置，其余的会忽略。指定配置请使用aqt -i参数"),
+            .description("🎨 图片样式列表 —— 第一行为默认配置，其余可用 aqt -i 索引指定"),
         imageWidth: Schema
             .number()
             .default(1920)
-            .description("默认 图片宽度"),
+            .description("📐 默认图片宽度（px）"),
         imageMinHeight: Schema
             .number()
             .default(1080)
-            .description("默认 最小图片高度"),
+            .description("📏 默认最小图片高度（px）"),
         imageType: Schema.union([
-            Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG}, ❌ 不支持调整quality`),
-            Schema.const(IMAGE_TYPES.JPEG).description(`🌄 ${IMAGE_TYPES.JPEG}, ✅ 支持调整quality`),
-            Schema.const(IMAGE_TYPES.WEBP).description(`🌐 ${IMAGE_TYPES.WEBP}, ✅ 支持调整quality`),
+            Schema.const(IMAGE_TYPES.PNG).description(`🖼️ ${IMAGE_TYPES.PNG}, ❌ 不支持调整 quality`),
+            Schema.const(IMAGE_TYPES.JPEG).description(`🌄 ${IMAGE_TYPES.JPEG}, ✅ 支持调整 quality`),
+            Schema.const(IMAGE_TYPES.WEBP).description(`🌐 ${IMAGE_TYPES.WEBP}, ✅ 支持调整 quality`),
             ])
             .role('radio')
             .default(IMAGE_TYPES.PNG)
-            .description("📤 渲染图片的输出类型。"),
+            .description("📤 渲染图片的输出格式"),
         PageScreenshotquality: Schema
             .number()
             .role('slider')
             .min(0).max(100).step(0.1)
             .default(60)
-            .description("Puppeteer截图质量参数, 图片压缩质量, 范围[0, 100], 对png无效")
+            .description("🎚️ Puppeteer 截图质量 [0-100]，对 PNG 无效")
     })
-        .description("quote图片相关配置"),
+        .description("🖼️ 图片渲染配置"),
+
+    // ─── 🐛 调试设置 ───
     Schema.object({
         verboseSessionLog: Schema
             .boolean()
-            .default(false),
+            .default(false)
+            .description('🐛 在会话中输出详细参数信息'),
         verboseConsoleLog: Schema
             .boolean()
-            .default(false),
+            .default(false)
+            .description('🐛 在控制台输出详细参数信息'),
     })
-        .description("debug settings")
+        .description("🐛 调试设置 🔧")
 ]);
 
 export function apply(ctx: Context, config: any) {
@@ -383,11 +414,22 @@ export function apply(ctx: Context, config: any) {
         // const session_user_obj = await session.bot.getUser(session.quote.user.id, session.quote.channel.id);
         const session_user_obj = await session.bot.getUser(session.quote.user.id, session.channelId); //目前onebot discord可以这样用，但是telegram不行 qwq
         let usernameArg = session_user_obj.name;
-        if ( config.addOnebotGroupCard && session.onebot ){
+        if (config.onebotNameStyle !== 'name-only' && session.onebot) {
             const onebot_groupmember_obj = await session.onebot.getGroupMemberInfo(session.quote.guild.id, session.quote.user.id);
             const onebot_groupcard = onebot_groupmember_obj.card;
-            if ( onebot_groupcard && onebot_groupcard.length > 0 )
-                usernameArg += `(${onebot_groupcard})`;
+            if (onebot_groupcard && onebot_groupcard.length > 0) {
+                switch (config.onebotNameStyle) {
+                    case 'card-only':
+                        usernameArg = onebot_groupcard;
+                        break;
+                    case 'name-card':
+                        usernameArg = `${session_user_obj.name}（${onebot_groupcard}）`;
+                        break;
+                    case 'card-name':
+                        usernameArg = `${onebot_groupcard}（${session_user_obj.name}）`;
+                        break;
+                }
+            }
         }
 
         const avatar_buffer = await ctx.http.file(session_user_obj.avatar);
