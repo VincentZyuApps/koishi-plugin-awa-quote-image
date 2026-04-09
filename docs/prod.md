@@ -1,6 +1,9 @@
 ## git
-> 生产环境直接与git同步即可
 ```shell
-git pull origin
-git reset --hard origin/master
+cd /path/to/koishi
+cd ./external/koishi-plugin-awa-quote-image
+git clone https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image.git
+cd ..
+yarn
+yarn dev
 ```

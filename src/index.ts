@@ -184,42 +184,49 @@ export const Config = Schema.intersect([
 			)
 			.role('table')
 			.default([
+				// 【0】原始_黑底白字 (白天模式)
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[0],
 					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
 					darkMode: false,
 				},
+				// 【1】原始_黑底白字 (黑夜模式)
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[0],
 					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
 					darkMode: true,
 				},
+				// 【2】现代_思源宋体 (白天模式)
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[1],
 					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
 					darkMode: false,
 				},
+				// 【3】现代_思源宋体 (黑夜模式)
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[1],
 					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
 					darkMode: true,
 				},
+				// 【4】简洁_落霞孤鹜文楷 (白天模式)
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[2],
 					fontPath: path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'),
 					darkMode: false,
 				},
+				// 【5】简洁_落霞孤鹜文楷 (黑夜模式)
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[2],
 					fontPath: path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'),
 					darkMode: true,
 				},
-				// ✅ 新增 QQ 气泡样式（通过 darkMode 控制白天/黑夜）
+				// 【6】QQ消息气泡 (白天模式) 💬
 				{
 					styleKey: 'QQ_BUBBLE',
 					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
 					darkMode: false,
 				},
+				// 【7】QQ消息气泡 (黑夜模式) 💬
 				{
 					styleKey: 'QQ_BUBBLE',
 					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
