@@ -13,6 +13,12 @@ interface TemplateOptions {
     enableDarkMode: boolean;
     showUserId: boolean;
     showTimestamp: boolean;
+    groupBadgeInfo?: {          // ✅ 新增可选字段：群徽章信息（群等级+群头衔）
+        levelText: string;      // 群等级文本，如 "LV13"
+        titleText?: string;     // 群头衔文本（可选），如 "群主"、"管理员"、自定义头衔
+        color: string;          // 文字颜色
+        bgColor: string;        // 背景颜色
+    };
 }
 
 const getFontSize = (sentenceLength: number, baseSize: number, decreaseRate: number, threshold: number) =>
@@ -139,6 +145,270 @@ const getCleanLXGWWenkaiTemplateStr = async (options: TemplateOptions): Promise<
 };
 
 
+// ========== 新增：QQ 气泡风格模板函数 ==========
+
+/**
+ * QQ 气泡白天模式模板
+ * 特点：模仿QQ默认消息气泡，支持群头衔标签显示
+ */
+const getQqBubbleLightTemplateStr = async (options: TemplateOptions): Promise<string> => {
+    const sentenceLength = options.sentence.length;
+    const sentenceFontSize = Math.max(getFontSize(sentenceLength, 32, 0.15, 80), 24);
+    const usernameFontSize = Math.max(getFontSize(sentenceLength, 26, 0.12, 80), 20);
+    const userIdFontSize = Math.max(getFontSize(sentenceLength, 20, 0.10, 80), 16);
+    const timestamp = getTimestamp();
+
+    // 群徽章HTML（群等级 + 可选的群头衔）
+    let groupBadgeHtml = '';
+    if (options.groupBadgeInfo) {
+        const { levelText, titleText, color, bgColor } = options.groupBadgeInfo;
+        
+        if (titleText) {
+            // 有头衔：显示 "LVxx 头衔"
+            groupBadgeHtml = `<div class="group-badge" style="color: ${color}; background-color: ${bgColor};">
+                <span class="badge-level">${levelText}</span>
+                <span class="badge-title">${titleText}</span>
+            </div>`;
+        } else {
+            // 无头衔：只显示群等级
+            groupBadgeHtml = `<div class="group-badge badge-level-only" style="color: ${color}; background-color: ${bgColor};">
+                <span class="badge-level">${levelText}</span>
+            </div>`;
+        }
+    }
+
+    const css = `
+@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+    margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;
+    font-family:'CustomFont','Microsoft YaHei',sans-serif;
+    background-color:#F5F5F5;color:#333;
+}
+#qq-bubble-container{
+    display:flex;align-items:flex-start;gap:20px;
+    max-width:700px;margin:0 auto;
+    padding:50px 60px;
+}
+.avatar{
+    width:80px;height:80px;border-radius:50%;flex-shrink:0;
+    background-image:url(data:image/png;base64,${options.avatarBase64});
+    background-size:cover;background-position:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.content-area{
+    flex:1;display:flex;flex-direction:column;gap:8px;
+}
+.header-row{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.group-badge{
+    display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;
+    font-size:14px;font-weight:bold;
+}
+.badge-level{
+    /* 群等级样式 */
+}
+.badge-title{
+    /* 群头衔样式 */
+}
+.badge-level-only{
+    /* 仅显示群等级时的样式（无间隔） */
+    padding:3px 10px;
+}
+.username-row{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.username{
+    font-size:${usernameFontSize}px;font-weight:bold;color:#333;
+}
+.userid{
+    font-size:${userIdFontSize}px;color:#999;
+}
+.message-bubble{
+    background-color:#FFFFFF;border-radius:12px;padding:12px 16px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);position:relative;
+    max-width:480px;word-break:break-word;line-height:1.6;
+}
+/* 小三角箭头 */
+.message-bubble::before{
+    content:'';position:absolute;left:-8px;top:16px;
+    width:0;height:0;
+    border-top:8px solid transparent;
+    border-bottom:8px solid transparent;
+    border-right:8px solid #FFFFFF;
+}
+.sentence{
+    font-size:${sentenceFontSize}px;color:#333;
+}
+.metadata{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:8px;font-size:16px;color:#999;
+}
+.timestamp{
+    font-size:16px;color:#999;
+}
+`;
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>${css}</style>
+</head>
+<body>
+    <div id="qq-bubble-container">
+        <div class="avatar"></div>
+        <div class="content-area">
+            <div class="header-row">
+                <div class="username">${options.username}</div>
+                ${groupBadgeHtml}
+            </div>
+            ${options.showUserId ? `<div class="userid">(ID: ${options.userId})</div>` : ''}
+            <div class="message-bubble">
+                <div class="sentence">${options.sentence}</div>
+            </div>
+            ${options.showTimestamp ? `<div class="metadata"><div class="timestamp">${timestamp}</div></div>` : ''}
+        </div>
+    </div>
+</body>
+</html>
+`;
+};
+
+/**
+ * QQ 气泡黑夜模式模板
+ * 特点：深色主题，其他布局同白天模式
+ */
+const getQqBubbleDarkTemplateStr = async (options: TemplateOptions): Promise<string> => {
+    const sentenceLength = options.sentence.length;
+    const sentenceFontSize = Math.max(getFontSize(sentenceLength, 32, 0.15, 80), 24);
+    const usernameFontSize = Math.max(getFontSize(sentenceLength, 26, 0.12, 80), 20);
+    const userIdFontSize = Math.max(getFontSize(sentenceLength, 20, 0.10, 80), 16);
+    const timestamp = getTimestamp();
+
+    // 群徽章HTML（群等级 + 可选的群头衔）
+    let groupBadgeHtml = '';
+    if (options.groupBadgeInfo) {
+        const { levelText, titleText, color, bgColor } = options.groupBadgeInfo;
+        
+        if (titleText) {
+            // 有头衔：显示 "LVxx 头衔"
+            groupBadgeHtml = `<div class="group-badge" style="color: ${color}; background-color: ${bgColor};">
+                <span class="badge-level">${levelText}</span>
+                <span class="badge-title">${titleText}</span>
+            </div>`;
+        } else {
+            // 无头衔：只显示群等级
+            groupBadgeHtml = `<div class="group-badge badge-level-only" style="color: ${color}; background-color: ${bgColor};">
+                <span class="badge-level">${levelText}</span>
+            </div>`;
+        }
+    }
+
+    const css = `
+@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+    margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;
+    font-family:'CustomFont','Microsoft YaHei',sans-serif;
+    background-color:#1A1A1A;color:#CCCCCC;
+}
+#qq-bubble-container{
+    display:flex;align-items:flex-start;gap:20px;
+    max-width:700px;margin:0 auto;
+    padding:50px 60px;
+}
+.avatar{
+    width:80px;height:80px;border-radius:50%;flex-shrink:0;
+    background-image:url(data:image/png;base64,${options.avatarBase64});
+    background-size:cover;background-position:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.content-area{
+    flex:1;display:flex;flex-direction:column;gap:8px;
+}
+.header-row{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.group-badge{
+    display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;
+    font-size:14px;font-weight:bold;
+}
+.badge-level{
+    /* 群等级样式 */
+}
+.badge-title{
+    /* 群头衔样式 */
+}
+.badge-level-only{
+    /* 仅显示群等级时的样式（无间隔） */
+    padding:3px 10px;
+}
+.username-row{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.username{
+    font-size:${usernameFontSize}px;font-weight:bold;color:#E0E0E0;
+}
+.userid{
+    font-size:${userIdFontSize}px;color:#888;
+}
+.message-bubble{
+    background-color:#2D2D2D;border-radius:12px;padding:12px 16px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.2);position:relative;
+    max-width:480px;word-break:break-word;line-height:1.6;
+}
+/* 小三角箭头 */
+.message-bubble::before{
+    content:'';position:absolute;left:-8px;top:16px;
+    width:0;height:0;
+    border-top:8px solid transparent;
+    border-bottom:8px solid transparent;
+    border-right:8px solid #2D2D2D;
+}
+.sentence{
+    font-size:${sentenceFontSize}px;color:#E0E0E0;
+}
+.metadata{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:8px;font-size:16px;color:#888;
+}
+.timestamp{
+    font-size:16px;color:#888;
+}
+`;
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>${css}</style>
+</head>
+<body>
+    <div id="qq-bubble-container">
+        <div class="avatar"></div>
+        <div class="content-area">
+            <div class="header-row">
+                <div class="username">${options.username}</div>
+                ${groupBadgeHtml}
+            </div>
+            ${options.showUserId ? `<div class="userid">(ID: ${options.userId})</div>` : ''}
+            <div class="message-bubble">
+                <div class="sentence">${options.sentence}</div>
+            </div>
+            ${options.showTimestamp ? `<div class="metadata"><div class="timestamp">${timestamp}</div></div>` : ''}
+        </div>
+    </div>
+</body>
+</html>
+`;
+};
+
+// ================================================
+
 export async function renderQuoteImage(
     ctx: Context,
     args: {
@@ -147,6 +417,12 @@ export async function renderQuoteImage(
         selectedStyle: ImageStyleKey,   fontBase64: string,             enableDarkMode: boolean,
         imageType: ImageType,           pageScreenshotquality: number,
         showUserId: boolean,            showTimestamp: boolean,
+        groupBadgeInfo?: {              // ✅ 新增可选字段：群徽章信息（群等级+群头衔）
+            levelText: string;          // 群等级文本，如 "LV13"
+            titleText?: string;         // 群头衔文本（可选），如 "群主"、"管理员"、自定义头衔
+            color: string;              // 文字颜色
+            bgColor: string;            // 背景颜色
+        };
     }
 ) {
     const browserPage = await ctx.puppeteer.page();
@@ -164,6 +440,7 @@ export async function renderQuoteImage(
             enableDarkMode: args.enableDarkMode,
             showUserId: args.showUserId,
             showTimestamp: args.showTimestamp,
+            groupBadgeInfo: args.groupBadgeInfo,  // ✅ 新增：群徽章信息（群等级+群头衔）
         };
 
         switch (args.selectedStyle) {
@@ -175,6 +452,14 @@ export async function renderQuoteImage(
                 break;
             case 'CLEAN_LXGW_WENKAI':
                 html = await getCleanLXGWWenkaiTemplateStr(templateOptions);
+                break;
+            case 'QQ_BUBBLE':
+                // 根据 enableDarkMode 选择白天或黑夜模式
+                if (args.enableDarkMode) {
+                    html = await getQqBubbleDarkTemplateStr(templateOptions);
+                } else {
+                    html = await getQqBubbleLightTemplateStr(templateOptions);
+                }
                 break;
             default:
                 html = await getOriginBlackWhiteTemplateStr(templateOptions);
@@ -194,8 +479,21 @@ export async function renderQuoteImage(
 
         await browserPage.waitForSelector('body', { timeout: 5000 });
 
-        const wrapperId = args.selectedStyle === 'MODERN_SOURCE_HAN_SERIF_SC' ? 'body' : '#content-wrapper';
+        // 根据不同的样式选择不同的容器选择器
+        let wrapperId: string;
+        if (args.selectedStyle === 'MODERN_SOURCE_HAN_SERIF_SC') {
+            wrapperId = 'body';
+        } else if (args.selectedStyle === 'QQ_BUBBLE') {
+            wrapperId = '#qq-bubble-container';  // QQ气泡样式使用不同的容器ID
+        } else {
+            wrapperId = '#content-wrapper';  // 其他样式使用默认容器
+        }
+        
         const element = await browserPage.$(wrapperId);
+
+        if (!element) {
+            throw new Error(`无法找到渲染容器元素: ${wrapperId}。可能是HTML模板结构有误或CSS加载失败。`);
+        }
 
         const res = await element.screenshot({
             encoding: 'base64',
