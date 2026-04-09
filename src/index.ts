@@ -142,7 +142,7 @@ export const Config = Schema.intersect([
 			])
 			.role('radio')
 			.default('name-card')
-			.description('🎭 Onebot 平台用户名显示样式（非 Onebot 平台始终显示用户名）'),
+			.description('🎭 Onebot 平台用户名显示样式 <br/> <i>（仅对Onebot平台生效，非 Onebot 平台始终显示用户名）</i>'),
 		showUserId: Schema
 			.boolean()
 			.default(true)
@@ -162,7 +162,7 @@ export const Config = Schema.intersect([
 		showGroupTitleInQqBubble: Schema
 			.boolean()
 			.default(true)
-			.description('🏷️ 是否在QQ 气泡样式中显示群头衔和群等级（仅 OneBot平台且使用QQ 气泡样式时生效）'),
+			.description('🏷️ 是否在QQ 气泡样式中显示群头衔和群等级（仅OneBot平台 且 使用QQ气泡样式时生效）'),
 	}).description('💬 会话设置 ⚙️'),
 
 	// ─── 🖼️ 图片渲染配置 ───
@@ -357,7 +357,7 @@ export function apply(ctx: Context, config: any) {
 		.alias("acs")
 		.action(async ({ session }) => {
 			let msg = `🎨 **名人名言图片样式列表** 📋\n\n`;
-			msg += `💡 使用方式：\`${config.aqtCommandName} -i <索引号> [-d true/false]\`\n\n`;
+			msg += `💡 使用方式：\`${config.aqtCommandName} -i <索引号> [-dark true/false]\`\n\n`;
 			for (let i = 0; i < config.imageStyleDetails.length; i++) {
 				const o = config.imageStyleDetails[i];
 				const styleIcon = o.styleKey === 'QQ_BUBBLE' ? '💬' : '🖼️';
