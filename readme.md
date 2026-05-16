@@ -35,8 +35,12 @@
 Koishi 插件，回复一条消息，渲染"名人名言"图片。支持多种图片样式，让你的群聊更加有趣！🎉
 
 ## 更新日志
+> 0.1.7: 新增 `--no-newlines` 参数，默认保留原始消息换行，使用该参数可折叠换行为单行
+> 0.1.6: 新增 QQ消息气泡样式 💬，模仿QQ原生消息卡片外观，支持群头衔/群等级显示 🏷️
+> 0.1.5: 新增 showUserId/showTimestamp 全局配置项 & 更新QQ群号 & 防伪造警告提示
+> 0.1.4: onebotNameStyle 改为四选一配置（name-only/card-only/name-card/card-name）
+> 0.1.3: 修复 enableWatingHint 配置项 & 引用回复应用到图片/参数消息
 > 0.1.2: 新增 图片中强制展示userId，防止有人伪造聊天记录造成不良后果
-> 前面的: 忘了awa，反正你看到的features都是前面更新的
 
 ## 📖 使用方法
 

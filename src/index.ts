@@ -378,6 +378,7 @@ export function apply(ctx: Context, config: any) {
 				.alias("aqt")
 				.option("imageStyleIdx", "-i, --idx, --index <idx:number> 图片样式索引")
 				.option("enableDarkMode", "-d, --dark, --darkmode <enableDarkMode:string> 启用深色模式")
+				.option("newlines", "--newlines, --no-newlines 是否保留原始消息换行（默认开启）")
 				.option("verbose", "-v, --verbose 在session和console打印详细参数信息")
 				.action(async ({ session, options }) => {
 					try {
@@ -576,7 +577,8 @@ export function apply(ctx: Context, config: any) {
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
 				imageType: config.imageType, pageScreenshotquality: config.PageScreenshotquality,
 				showUserId: config.showUserId !== false, showTimestamp: config.showTimestamp !== false,
-				groupBadgeInfo: groupBadgeInfo,                 // ✅ 新增：群徽章信息（群等级+群头衔）
+				preserveNewlines: options.newlines !== false,
+				groupBadgeInfo: groupBadgeInfo,
 			}
 		);
 		await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`)
