@@ -118,7 +118,7 @@ export interface Config {
 }
 
 // 📝 配置项 Schema 定义
-export const Config = Schema.intersect([
+export const Config: Schema<Config> = Schema.intersect([
 	// ─── 📌 基础配置 ───
 	Schema.object({
 		acsCommandName: Schema
