@@ -326,7 +326,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				sentence: session.quote.content, username: usernameArg, userId: session.quote.user.id, avatarBase64: avatar_base64,
 				width: config.imageWidth, minHeight: config.imageMinHeight,
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
-				imageType: config.imageType, pageScreenshotquality: config.PageScreenshotquality,
+				imageType: config.imageType, enablePageScreenshotQuality: config.pageScreenshotQuality,
 				showUserId: config.showUserId !== false, showTimestamp: config.showTimestamp !== false,
 				preserveNewlines: options.newlines !== false,
 				groupBadgeInfo: groupBadgeInfo,

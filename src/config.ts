@@ -38,7 +38,7 @@ export interface Config {
 	/** 📤 输出图片类型 */
 	imageType: ImageType
 	/** 🎚️ 截图质量参数 */
-	PageScreenshotquality: number
+	pageScreenshotQuality: number
 
 	/** 🐛 是否在会话中输出调试信息 */
 	verboseSessionLog: boolean
@@ -170,7 +170,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.role('radio')
 			.default(IMAGE_TYPES.PNG)
 			.description('📤 渲染图片的输出格式'),
-		PageScreenshotquality: Schema
+		pageScreenshotQuality: Schema
 			.number()
 			.role('slider')
 			.min(0).max(100).step(0.1)

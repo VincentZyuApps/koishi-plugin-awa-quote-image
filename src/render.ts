@@ -213,7 +213,7 @@ export async function renderQuoteImage(
         sentence: string,               username: string,               userId:string,  avatarBase64: string,
         width: number,                  minHeight: number,
         selectedStyle: ImageStyleKey,   fontBase64: string,             enableDarkMode: boolean,
-        imageType: ImageType,           pageScreenshotquality: number,
+        imageType: ImageType,           enablePageScreenshotQuality: number,
         showUserId: boolean,            showTimestamp: boolean,
         preserveNewlines: boolean,
         groupBadgeInfo?: {
@@ -293,18 +293,12 @@ export async function renderQuoteImage(
         const res = await element.screenshot({
             encoding: 'base64',
             type: args.imageType,
-            ...(args.imageType !== IMAGE_TYPES.PNG && { quality: args.pageScreenshotquality })
+            ...(args.imageType !== IMAGE_TYPES.PNG && { quality: args.enablePageScreenshotQuality })
         });
-
         return res;
-
     } catch (err) {
-
         ctx.logger.error(`error: ${err}`);
-
     } finally {
-
         await browserPage.close();
-
     }
 }
