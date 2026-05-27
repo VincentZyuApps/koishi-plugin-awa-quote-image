@@ -12,9 +12,9 @@ export const IMAGE_STYLE_KEY_ARR = Object.keys(IMAGE_STYLES) as ImageStyleKey[];
 
 
 export const IMAGE_TYPES = {
-  PNG: 'png',
-  JPEG: 'jpeg',
-  WEBP: 'webp',
+    PNG: 'png',
+    JPEG: 'jpeg',
+    WEBP: 'webp',
 } as const;
 
 export type ImageType = typeof IMAGE_TYPES[keyof typeof IMAGE_TYPES];
