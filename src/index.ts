@@ -111,7 +111,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			msg += `💡 使用方式：\`${config.aqtCommandName} -i <索引号> [-dark true/false]\`\n\n`;
 			for (let i = 0; i < config.imageStyleDetails.length; i++) {
 				const o = config.imageStyleDetails[i];
-				const styleIcon = o.styleKey === 'QQ_BUBBLE' ? '💬' : '🖼️';
+				const styleIcon = o.styleKey === IMAGE_STYLE_KEY_ARR[3] ? '💬' : '🖼️';
 				const modeIcon = o.darkMode ? '🌙' : '☀️';
 				msg += `${styleIcon} 【${i}】 ${modeIcon} ${IMAGE_STYLES[o.styleKey]} ${o.darkMode ? '(深色)' : '(浅色)'}\n`;
 			}
@@ -156,7 +156,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 
 		const waitingHintMsgId = config.enableWatingHint
-			? await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}🎨 正在渲染名人名言图片，请稍候... ⏳`)
+			? (await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}🎨 正在渲染名人名言图片，请稍候... ⏳`))[0]
 			: null;
 
 		const FALLBACK_STYLE_DETAIL_OBJ = {
@@ -184,7 +184,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 					`💡 小贴士：输入指令 \`${config.acsCommandName}\` 查看所有可用的图片样式列表 (*╹▽╹*) ✨`
 				];
 				await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${idxInvalidMsgArr.join('\n')}`);
-				waitingHintMsgId && await session.bot.deleteMessage(session.guildId, waitingHintMsgId);
+				waitingHintMsgId && await session.bot.deleteMessage(session.channelId, waitingHintMsgId);
 				return;
 			}
 			selectedStyleDetailObj = config.imageStyleDetails[options.imageStyleIdx as number];
@@ -232,7 +232,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 // ========== 新增：获取群头衔和群等级信息（仅 QQ 气泡样式 + OneBot 平台）==========
 	let groupBadgeInfo: { levelText: string; titleText?: string; color: string; bgColor: string } | undefined = undefined;
 
-	const isQqBubbleStyle = selectedStyleDetailObj.styleKey === 'QQ_BUBBLE';
+		const isQqBubbleStyle = selectedStyleDetailObj.styleKey === IMAGE_STYLE_KEY_ARR[3];
 
 	if (session.onebot && isQqBubbleStyle && config.showGroupTitleInQqBubble) {
 		try {
@@ -334,7 +334,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		);
 		await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`)
 
-		waitingHintMsgId && await session.bot.deleteMessage(session.guildId, waitingHintMsgId);
+		waitingHintMsgId && await session.bot.deleteMessage(session.channelId, waitingHintMsgId);
 	}
 
 	async function fileToBase64(filePath: string): Promise<string> {
