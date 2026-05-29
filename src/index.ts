@@ -1,7 +1,7 @@
 import { Context, h } from 'koishi'
 import path from 'path'
 import { readFile, writeFile, mkdir } from 'fs/promises'
-import { readFileSync, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import { resolve } from 'path'
 
 import { } from 'koishi-plugin-adapter-onebot';
@@ -9,7 +9,6 @@ import { } from 'koishi-plugin-adapter-onebot';
 import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
-import { createUsage } from './usage';
 import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
 
 export const inject = {
@@ -19,11 +18,7 @@ export const inject = {
 export const name = 'awa-quote-image';
 const PLUGIN_NAME = name;
 
-const pkg = JSON.parse(
-	readFileSync(resolve(__dirname, '../package.json'), 'utf-8')
-)
-
-export const usage = createUsage(PLUGIN_NAME, pkg.version)
+export { usage } from './usage'
 export const Config = ConfigSchema
 
 export function apply(ctx: Context, config: AwaQuoteImageConfig) {

@@ -1,25 +1,45 @@
-export function createUsage(pluginName: string, version: string) {
-	return `
-<h1>🎭 Koishi 插件: 群u的名人名言 ${pluginName} 🎭</h1>
-<h2>🎯 插件版本：v${version}</h2>
+const pkg = require('../package.json')
+
+export const usage = `
+<h1>Koishi 插件：群u的名人名言 awa-quote-image</h1>
+<h2>🎯 插件版本：v${pkg.version}</h2>
+
+<p>
+  <a href="https://www.npmjs.com/package/koishi-plugin-awa-quote-image" target="_blank">
+    <img src="https://img.shields.io/npm/v/koishi-plugin-awa-quote-image?style=flat-square" alt="npm version">
+  </a>
+  <a href="https://github.com/VincentZyu233/koishi-plugin-awa-quote-image" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  </a>
+  <a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image" target="_blank">
+    <img src="https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white" alt="Gitee">
+  </a>
+  <a href="https://qm.qq.com/q/ZN7fxZ3qCq" target="_blank">
+    <img src="https://img.shields.io/badge/QQ群-1085190201-1AAD19?style=flat-square" alt="QQ群">
+  </a>
+  <a href="https://forum.koishi.xyz/t/topic/12566" target="_blank">
+    <img src="https://img.shields.io/badge/Koishi Forum-12566-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white" alt="Forum">
+  </a>
+</p>
 
 <h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
 
-<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了</del> </p>
 <p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
+<p><b>💡 提示：</b>
+  <a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image" target="_blank">
+    前往 Gitee README 获得更佳观感 →
+    <i>https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image</i>
+  </a>
+</p>
+
+<hr>
+
+<details>
+<summary><h2>📖 插件详细说明（点击展开）</h2></summary>
+
 <h2 style="color: #ff4444; font-weight: 900; font-size: 22px; margin: 20px 0; border: 2px solid #ff4444; padding: 12px; border-radius: 8px; background: rgba(255,68,68,0.08);">🚨 强烈建议保持开启「显示用户 ID」和「显示时间戳」！<br>防止有人换头像、改名字伪造聊天记录，关闭后果自负，与作者无关捏 ⚠️</h2>
-
-<hr>
-
-<p>📦 插件仓库地址：</p>
-<ul>
-  <li>🟠 <a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image">https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image</a></li>
-  <li>⚫ <a href="https://github.com/VincentZyu233/koishi-plugin-awa-quote-image">https://github.com/VincentZyu233/koishi-plugin-awa-quote-image</a></li>
-</ul>
-
-<hr>
 
 <h3>🎨 字体使用声明</h3>
 <p>本插件使用以下开源字体进行图像渲染：</p>
@@ -37,6 +57,8 @@ export function createUsage(pluginName: string, version: string) {
   <li>📋 需要的字体文件：<code>SourceHanSerifSC-SemiBold.otf</code> 和 <code>LXGWWenKaiMono-Regular.ttf</code></li>
 </ul>
 
+</details>
+
 <hr>
 
 <h3>📜 插件许可声明</h3>
@@ -44,4 +66,3 @@ export function createUsage(pluginName: string, version: string) {
 <p>⭐ 如果你觉得插件好用，欢迎在 GitHub 上 Star 或通过其他方式给予支持（例如提供服务器、API Key 或直接赞助）！💖</p>
 <p>🙏 感谢所有开源字体与项目的贡献者 ❤️</p>
 `
-}
