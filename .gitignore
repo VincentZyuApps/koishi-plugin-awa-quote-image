@@ -1,13 +1,18 @@
+# 🏗️ 构建产物
 lib
 dist
 external
 
+# 📦 依赖
 node_modules
+
+# 📋 日志
 npm-debug.log
 yarn-debug.log
 yarn-error.log
 tsconfig.tsbuildinfo
 
+# 🧹 缓存与编辑器
 .eslintcache
 .DS_Store
 .idea
@@ -17,11 +22,9 @@ tsconfig.tsbuildinfo
 *.njsproj
 *.sln
 
-# Temporary files
+# 🕐 临时文件
 src/tmp.html
 tmp/
 
-# Font files
-assets/*.ttf
-assets/*.otf
-
+# 🔤 字体文件（运行时自动下载）
+assets/
