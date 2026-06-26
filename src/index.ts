@@ -1,8 +1,5 @@
 import { Context, h } from 'koishi'
 import path from 'path'
-import { readFile, writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import { resolve } from 'path'
 
 import { } from 'koishi-plugin-adapter-onebot';
 
@@ -10,6 +7,8 @@ import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
 import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
+import { checkAndDownloadFonts, fileToBase64 } from './utils';
+import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData } from './qq';
 
 export const inject = {
 	required: ["puppeteer", "http"]
@@ -22,79 +21,6 @@ export { usage } from './usage'
 export const Config = ConfigSchema
 
 export function apply(ctx: Context, config: AwaQuoteImageConfig) {
-
-	// 检查字体文件并下载
-	async function checkAndDownloadFonts() {
-		const assetsDir = path.resolve(__dirname, '../assets');
-		const sourceHanSerifPath = path.join(assetsDir, 'SourceHanSerifSC-SemiBold.otf');
-		const lxgwWenKaiPath = path.join(assetsDir, 'LXGWWenKaiMono-Regular.ttf');
-
-		const sourceHanSerifExists = existsSync(sourceHanSerifPath);
-		const lxgwWenKaiExists = existsSync(lxgwWenKaiPath);
-
-		if (sourceHanSerifExists && lxgwWenKaiExists) {
-			ctx.logger.info(`[${PLUGIN_NAME}] 字体文件已存在，跳过下载`);
-			return true;
-		}
-
-		ctx.logger.info(`[${PLUGIN_NAME}] 开始下载字体文件...`);
-
-		// 确保assets目录存在
-		try {
-			await mkdir(assetsDir, { recursive: true });
-		} catch (error) {
-			ctx.logger.error(`[${PLUGIN_NAME}] 创建assets目录失败: ${error}`);
-			return false;
-		}
-
-		const downloadPromises = [];
-
-		if (!sourceHanSerifExists) {
-			ctx.logger.info(`[${PLUGIN_NAME}] 下载 SourceHanSerifSC-SemiBold.otf...`);
-			const downloadPromise = downloadFont(
-				'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf',
-				sourceHanSerifPath
-			);
-			downloadPromises.push(downloadPromise);
-		}
-
-		if (!lxgwWenKaiExists) {
-			ctx.logger.info(`[${PLUGIN_NAME}] 下载 LXGWWenKaiMono-Regular.ttf...`);
-			const downloadPromise = downloadFont(
-				'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf',
-				lxgwWenKaiPath
-			);
-			downloadPromises.push(downloadPromise);
-		}
-
-		try {
-			await Promise.all(downloadPromises);
-			ctx.logger.info(`[${PLUGIN_NAME}] 字体文件下载完成`);
-			return true;
-		} catch (error) {
-			ctx.logger.error(`[${PLUGIN_NAME}] 字体文件下载失败: ${error}`);
-			return false;
-		}
-	}
-
-	// 使用ctx.http下载字体文件（简单模式）
-	async function downloadFont(url: string, filePath: string): Promise<void> {
-		const fileName = path.basename(filePath);
-
-		try {
-			ctx.logger.info(`[${PLUGIN_NAME}] 开始下载字体文件: ${fileName}`);
-			const response = await ctx.http.get(url, {
-				responseType: 'arraybuffer',
-				timeout: 60000 // 60秒超时
-			});
-			await writeFile(filePath, Buffer.from(response));
-			ctx.logger.info(`[${PLUGIN_NAME}] 字体文件下载成功: ${fileName} ✓`);
-		} catch (error) {
-			ctx.logger.error(`[${PLUGIN_NAME}] 字体文件下载失败 ${fileName}: ${error}`);
-			throw error;
-		}
-	}
-
 	// 立即注册 acs 指令
 	ctx.command(
 		config.acsCommandName,
@@ -115,10 +41,10 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		});
 
 	// 异步检查字体文件并注册 aqt 指令
-	checkAndDownloadFonts().then((success) => {
+	checkAndDownloadFonts(ctx, PLUGIN_NAME).then((success) => {
 		if (success) {
 			ctx.command(
-				config.aqtCommandName,
+				config.aqtCommandName + ' [text:text]',
 				"回复/引用某个群u说的话, 制作名人名言图片"
 			)
 				.alias("aqt")
@@ -144,12 +70,41 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 	});
 
 	async function do_aqt({ session, options }) {
-		if (!session.quote) {
+		const isVerbose = config.verboseConsoleLog || options.verbose
+		if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: platform=${session.platform}, hasQuote=${!!session.quote}, quoteContent=${!!session.quote?.content}`)
+
+		let quoteData: { content: string; userId: string; guildId: string }
+		let preUserObj: { name: string; avatar: string } | null = null
+
+		// Priority 1: session.quote 有内容（OneBot + crack适配器缓存命中）
+		if (session.quote?.content) {
+			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 走 Priority 1 session.quote`)
+			quoteData = {
+				content: session.quote.content,
+				userId: session.quote.user?.id || '',
+				guildId: session.quote.guild?.id || session.guildId,
+			}
+		// Priority 2: QQ 自救（内置适配器，从 msg_elements[0] 取引用原文）
+		} else if (session.platform === 'qq') {
+			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 走 Priority 2 resolveQQData`)
+			const qq = await resolveQQData(session, options, ctx, config)
+			if (!qq) {
+				await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}💬 请先回复或引用一条消息，我才能帮你制作名人名言图片哦~ 📝`)
+				return
+			}
+			quoteData = qq
+			preUserObj = qq.username ? { name: qq.username, avatar: qq.avatar } : null
+		// Priority 3: 其他平台无引用
+		} else {
+			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 无引用内容，报错`)
 			await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}💬 请先回复或引用一条消息，我才能帮你制作名人名言图片哦~ 📝`);
 			return;
 		}
 
+		await renderAndSend({ session, options, quoteData, preUserObj })
+	}
 
+	async function renderAndSend({ session, options, quoteData, preUserObj = null }) {
 		const waitingHintMsgId = config.enableWatingHint
 			? (await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}🎨 正在渲染名人名言图片，请稍候... ⏳`))[0]
 			: null;
@@ -160,13 +115,11 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			darkMode: true,
 		}
 
-		// 获取配置项中的第一行， 如果配置项arr是空，那么用FALLBACK
 		const defaultStyleDetailObj = config.imageStyleDetails.length > 0 ?
 			config.imageStyleDetails[0] :
 			FALLBACK_STYLE_DETAIL_OBJ;
 		let selectedStyleDetailObj = defaultStyleDetailObj;
 		if (options.imageStyleIdx !== undefined) {
-			// 发现传了index，那么进行index参数校验
 			const isIdxValid: boolean = (options.imageStyleIdx as number) >= 0
 				&& (options.imageStyleIdx as number) < config.imageStyleDetails.length;
 			if (!isIdxValid) {
@@ -184,7 +137,6 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			}
 			selectedStyleDetailObj = config.imageStyleDetails[options.imageStyleIdx as number];
 		} else {
-			// 没有传index，那么使用配置项中的第一行
 			if (config.imageStyleDetails.length === 0) {
 				let configErrMsg = `⚠️ ${PLUGIN_NAME} 配置错误：图片样式列表为空，请联系管理员检查插件配置！ 🔧`;
 				await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${configErrMsg}`);
@@ -194,20 +146,20 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 		let selectedEnableDarkMode = selectedStyleDetailObj.darkMode;
 		if (options.enableDarkMode !== undefined) {
-			// ctx.logger.info(`options.enableDarkMode = ${options.enableDarkMode}`);
 			if (options.enableDarkMode.toLowerCase() === 'true')
 				selectedEnableDarkMode = true;
 			if (options.enableDarkMode.toLowerCase() === 'false')
 				selectedEnableDarkMode = false;
 		}
 
-
-		// const session_user_obj = await session.bot.getUser(session.quote.user.id, session.quote.guild.id);
-		// const session_user_obj = await session.bot.getUser(session.quote.user.id, session.quote.channel.id);
-		const session_user_obj = await session.bot.getUser(session.quote.user.id, session.channelId); //目前onebot discord可以这样用，但是telegram不行 qwq
-		let usernameArg = session_user_obj.name;
+		const session_user_obj = preUserObj ?? (
+			typeof session.bot.getUser === 'function'
+				? await session.bot.getUser(quoteData.userId, session.channelId)
+				: { name: quoteData.userId, avatar: '' }
+		);
+		let usernameArg = session_user_obj?.name || quoteData.userId;
 		if (config.onebotNameStyle !== 'name-only' && session.onebot) {
-			const onebot_groupmember_obj = await session.onebot.getGroupMemberInfo(session.quote.guild.id, session.quote.user.id);
+			const onebot_groupmember_obj = await session.onebot.getGroupMemberInfo(quoteData.guildId, quoteData.userId);
 			const onebot_groupcard = onebot_groupmember_obj.card;
 			if (onebot_groupcard && onebot_groupcard.length > 0) {
 				switch (config.onebotNameStyle) {
@@ -224,55 +176,45 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			}
 		}
 
-// ========== 新增：获取群头衔和群等级信息（仅 QQ 气泡样式 + OneBot 平台）==========
 	let groupBadgeInfo: { levelText: string; titleText?: string; color: string; bgColor: string } | undefined = undefined;
 
 		const isQqBubbleStyle = selectedStyleDetailObj.styleKey === IMAGE_STYLE_KEY_ARR[3];
 
 	if (session.onebot && isQqBubbleStyle && config.showGroupTitleInQqBubble) {
 		try {
-			// 调用 OneBot API 获取群成员详细信息
 			const memberInfo = await session.onebot.getGroupMemberInfo(
-				session.quote.guild.id,   // 群号
-				session.quote.user.id     // 用户QQ号
+				quoteData.guildId,
+				quoteData.userId
 			);
 
-			// 提取关键字段
-			const role = memberInfo.role;           // "owner" | "admin" | "member"
-			const customTitle = memberInfo.title;   // 自定义头衔（可能为空字符串 ""）
-			const level = memberInfo.level;         // 群等级（数字）
+			const role = memberInfo.role;
+			const customTitle = memberInfo.title;
+			const level = memberInfo.level;
 
-			// 构建群等级文本（始终显示）
 			const levelText = `LV${level}`;
 
-			// 根据角色和头衔确定颜色和标题
 			let titleText: string | undefined = undefined;
 			let color: string;
 			let bgColor: string;
 
 			if (role === 'owner') {
-				// 群主：有头衔显示头衔，无头衔显示"群主"
 				titleText = customTitle || '群主';
-				color = '#FF8C00';               // 橙色
+				color = '#FF8C00';
 				bgColor = 'rgba(255, 140, 0, 0.15)';
 			} else if (role === 'admin') {
-				// 管理员：有头衔显示头衔，无头衔显示"管理员"
 				titleText = customTitle || '管理员';
-				color = '#1E90FF';               // 蓝色
+				color = '#1E90FF';
 				bgColor = 'rgba(30, 144, 255, 0.15)';
 			} else if (customTitle && customTitle.length > 0) {
-				// 普通成员：有自定义头衔
 				titleText = customTitle;
-				color = '#9370DB';               // 紫色
+				color = '#9370DB';
 				bgColor = 'rgba(147, 112, 219, 0.15)';
 			} else {
-				// 普通成员且无头衔：只显示群等级
 				titleText = undefined;
-				color = '#888888';               // 灰色
+				color = '#888888';
 				bgColor = 'rgba(136, 136, 136, 0.15)';
 			}
 
-			// 组装最终数据（群等级始终存在，头衔可选）
 			groupBadgeInfo = {
 				levelText,
 				titleText,
@@ -280,7 +222,6 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				bgColor
 			};
 
-			// 调试日志
 			if (config.verboseConsoleLog || options.verbose) {
 				ctx.logger.info(`[${PLUGIN_NAME}] 群徽章信息: ${JSON.stringify({
 					role,
@@ -291,21 +232,24 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			}
 		} catch (error: any) {
 			ctx.logger.warn(`[${PLUGIN_NAME}] 获取群成员信息失败: ${error.message}`);
-			// 失败时不中断流程，groupBadgeInfo 保持为 undefined
 		}
 	}
-	// ==========================================================================
 
-		const avatar_buffer = await ctx.http.file(session_user_obj.avatar);
-		const avatar_base64 = Buffer.from(avatar_buffer.data).toString('base64');
-		const font_base64 = await fileToBase64(selectedStyleDetailObj.fontPath);
+		let avatar_base64 = ''
+		try {
+			const avatar_buffer = await ctx.http.file(session_user_obj.avatar)
+			avatar_base64 = Buffer.from(avatar_buffer.data).toString('base64')
+		} catch (e: any) {
+			ctx.logger.warn(`[${PLUGIN_NAME}] 头像下载失败: ${e?.message || e}`)
+		}
+		const font_base64 = await fileToBase64(ctx, PLUGIN_NAME, selectedStyleDetailObj.fontPath);
 
 		const argMsgArr = [
 			`${config.enableQuote ? h.quote(session.messageId) : ''}${PLUGIN_NAME} 参数信息`,
 			`\t 选中的图片样式细节: ${JSON.stringify(selectedStyleDetailObj)}`,
 			`\t 选中的是否黑暗模式: ${selectedEnableDarkMode}`,
 			`\t 用户名：${usernameArg}`,
-			`\t 引用消息内容：${session.quote.content.slice(0, 100)}...`,
+			`\t 引用消息内容：${quoteData.content.slice(0, 100)}...`,
 			`\t 用户头像：${h.image(session_user_obj.avatar)}`,
 		];
 		const argsMsg = argMsgArr.join('\n');
@@ -318,7 +262,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		const res = await renderQuoteImage(
 			ctx,
 			{
-				sentence: session.quote.content, username: usernameArg, userId: session.quote.user.id, avatarBase64: avatar_base64,
+				sentence: quoteData.content, username: usernameArg, userId: quoteData.userId, avatarBase64: avatar_base64,
 				width: config.imageWidth, minHeight: config.imageMinHeight,
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
 				imageType: config.imageType, enablePageScreenshotQuality: config.pageScreenshotQuality,
@@ -330,17 +274,11 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`)
 
 		waitingHintMsgId && await session.bot.deleteMessage(session.channelId, waitingHintMsgId);
-	}
 
-	async function fileToBase64(filePath: string): Promise<string> {
-		try {
-			const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
-			const buffer = await readFile(absolutePath);
-			return buffer.toString('base64');
-		} catch (error) {
-			ctx.logger.error(`[${PLUGIN_NAME}]文件转换成base64失败: ${error.message}`);
-			throw error;
+		if (session.platform === 'qq' && config.enableQQMarkdown) {
+			const md = buildQuoteMarkdown(quoteData.content)
+			const kb = buildQuoteKeyboard(config, quoteData.userId, config.qqMarkdownKeyboardJson)
+			await sendQQMarkdown(session, md, kb)
 		}
 	}
-
 }

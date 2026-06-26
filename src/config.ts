@@ -2,6 +2,7 @@ import { Schema } from 'koishi'
 import path from 'path'
 
 import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './type'
+import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
 
 export interface ImageStyleDetail {
 	/** 🖌️ 图片渲染样式 key */
@@ -18,16 +19,18 @@ export interface Config {
 	/** 🎨 aqt 指令名称 —— 制作名人名言图片 */
 	aqtCommandName: string
 
+	/** 💬 是否引用触发指令的消息 */
+	enableQuote: boolean
 	/** 🎭 Onebot 平台用户名显示样式 */
 	onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name'
 	/** 🆔 是否在图片中显示用户 ID */
 	showUserId: boolean
 	/** 🕐 是否在图片中显示时间戳 */
 	showTimestamp: boolean
-	/** 💬 是否引用触发指令的消息 */
-	enableQuote: boolean
 	/** ⏳ 是否显示「渲染中，请等待...」提示 */
 	enableWatingHint: boolean
+	/** 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）*/
+	showGroupTitleInQqBubble: boolean
 
 	/** 🖼️ 图片样式细节列表（table 配置） */
 	imageStyleDetails: ImageStyleDetail[]
@@ -40,13 +43,18 @@ export interface Config {
 	/** 🎚️ 截图质量参数 */
 	pageScreenshotQuality: number
 
+	/** 💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮 */
+	enableQQMarkdown: boolean
+	/** 📋 QQ Markdown 按钮 JSON 配置 */
+	qqMarkdownKeyboardJson: string
+
+	/** 🤖 QQ 官方 Bot 的机器人 uin（QQ号，用于头像地址，如 3889704577） */
+	qqBotUin: string
+
 	/** 🐛 是否在会话中输出调试信息 */
 	verboseSessionLog: boolean
 	/** 🐛 是否在控制台输出调试信息 */
 	verboseConsoleLog: boolean
-
-	/** 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）*/
-	showGroupTitleInQqBubble: boolean
 }
 
 export const Config: Schema<Config> = Schema.intersect([
@@ -62,6 +70,10 @@ export const Config: Schema<Config> = Schema.intersect([
 	}).description('📌 基础配置 ⚙️'),
 
 	Schema.object({
+		enableQuote: Schema
+			.boolean()
+			.default(true)
+			.description('💬 bot 发送消息时，是否引用触发消息的指令'),
 		onebotNameStyle: Schema
 			.union([
 				Schema.const('name-only').description('🏷️ 只显示用户名'),
@@ -80,10 +92,6 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.default(true)
 			.description('🕐 是否在图片中显示时间戳 —— **强烈建议保持开启**，防止篡改时间伪造聊天记录，关闭后果自负，与作者无关 ⚠️'),
-		enableQuote: Schema
-			.boolean()
-			.default(true)
-			.description('💬 bot 发送消息时，是否引用触发消息的指令'),
 		enableWatingHint: Schema
 			.boolean()
 			.default(true)
@@ -179,13 +187,29 @@ export const Config: Schema<Config> = Schema.intersect([
 	}).description('🖼️ 图片渲染配置'),
 
 	Schema.object({
+		enableQQMarkdown: Schema
+			.boolean()
+			.default(true)
+			.description('💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮消息'),
+		qqMarkdownKeyboardJson: Schema
+			.string()
+			.role('textarea', { rows: [5, 10] })
+			.default(stringifyCompact(DEFAULT_KEYBOARD_ROWS))
+			.description('📋 QQ Markdown 按钮 JSON 配置<br><em>支持变量: <code>${aqtCommandName}</code> <code>${acsCommandName}</code> <code>${userId}</code></em>'),
+		qqBotUin: Schema
+			.string()
+			.default('')
+			.description('🤖 QQ 官方 Bot 的机器人 uin（QQ号，用于拼接头像地址，如 3889704577）<br><i>留空则自动从 bot.config 获取</i>'),
+	}).description('🤖 QQ 官方 Bot 平台设置'),
+
+	Schema.object({
 		verboseSessionLog: Schema
 			.boolean()
 			.default(false)
-			.description('🐛 在会话中输出详细参数信息'),
+			.description('🐛 在会话中输出详细参数信息<br><i>生产环境别开，东西很多，影响用户体验</i>'),
 		verboseConsoleLog: Schema
 			.boolean()
 			.default(false)
-			.description('🐛 在控制台输出详细参数信息'),
+			.description('🐛 在控制台输出详细参数信息<br><i>生产环境别开，东西很多，影响用户体验</i>'),
 	}).description('🐛 调试设置 🔧')
 ])
