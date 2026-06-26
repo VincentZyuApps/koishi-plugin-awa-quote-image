@@ -105,6 +105,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 	}
 
 	async function renderAndSend({ session, options, quoteData, preUserObj = null }) {
+		const renderStartTime = Date.now()
 		const waitingHintMsgId = config.enableWatingHint
 			? (await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}🎨 正在渲染名人名言图片，请稍候... ⏳`))[0]
 			: null;
@@ -271,12 +272,17 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				groupBadgeInfo: groupBadgeInfo,
 			}
 		);
-		await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`)
+		const renderElapsed = Date.now() - renderStartTime
+		let imgMsg = `${config.enableQuote ? h.quote(session.messageId) : ''}${h.image(`data:image/${config.imageType};base64,${res}`)}`
+		if (config.showRenderInfo) {
+			imgMsg += `\n⏱️ 渲染耗时：${renderElapsed}ms | 样式：${selectedStyleDetailObj.styleKey}`
+		}
+		await session.send(imgMsg)
 
 		waitingHintMsgId && await session.bot.deleteMessage(session.channelId, waitingHintMsgId);
 
 		if (session.platform === 'qq' && config.enableQQMarkdown) {
-			const md = buildQuoteMarkdown(quoteData.content)
+			const md = buildQuoteMarkdown(quoteData.content, usernameArg)
 			const kb = buildQuoteKeyboard(config, quoteData.userId, config.qqMarkdownKeyboardJson)
 			await sendQQMarkdown(session, md, kb)
 		}

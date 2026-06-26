@@ -42,6 +42,8 @@ export interface Config {
 	imageType: ImageType
 	/** 🎚️ 截图质量参数 */
 	pageScreenshotQuality: number
+	/** ⏱️ 是否在图片后显示渲染耗时信息 */
+	showRenderInfo: boolean
 
 	/** 💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮 */
 	enableQQMarkdown: boolean
@@ -183,7 +185,11 @@ export const Config: Schema<Config> = Schema.intersect([
 			.role('slider')
 			.min(0).max(100).step(0.1)
 			.default(60)
-			.description('🎚️ Puppeteer 截图质量 [0-100]，对 PNG 无效')
+			.description('🎚️ Puppeteer 截图质量 [0-100]，对 PNG 无效'),
+		showRenderInfo: Schema
+			.boolean()
+			.default(false)
+			.description('⏱️ 发送图片时附渲染耗时信息<br><i>仅在消息末尾追加一行文字，不影响图片本身</i>')
 	}).description('🖼️ 图片渲染配置'),
 
 	Schema.object({
