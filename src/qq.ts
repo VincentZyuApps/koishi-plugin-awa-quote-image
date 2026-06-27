@@ -21,6 +21,12 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
   if (!d) return null
 
   const bot = session.bot as any
+  const botUinSource = config.qqBotUin ? 'config.qqBotUin' : 'bot.config.id'
+  const resolvedBotUin = config.qqBotUin || bot.config?.id || ''
+  const botUinMsg = `[awa-quote-image] QQ 官方 Bot 头像 botUin 来源: ${botUinSource}, value: ${resolvedBotUin || '(空)'}`
+
+  if (config.verboseConsoleLog || options?.verbose) ctx.logger.info(botUinMsg)
+  if (config.verboseSessionLog || options?.verbose) await session.send(botUinMsg)
 
   const avatarUrl = (userId: string) => config.qqBotUin
     ? `https://q.qlogo.cn/qqapp/${config.qqBotUin}/${userId}/640`

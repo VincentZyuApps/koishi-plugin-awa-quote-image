@@ -8,6 +8,9 @@ export const usage = `
   <a href="https://www.npmjs.com/package/koishi-plugin-awa-quote-image" target="_blank">
     <img src="https://img.shields.io/npm/v/koishi-plugin-awa-quote-image?style=flat-square" alt="npm version">
   </a>
+  <a href="https://www.npmjs.com/package/koishi-plugin-awa-quote-image" target="_blank">
+    <img src="https://img.shields.io/npm/dm/koishi-plugin-awa-quote-image?style=flat-square" alt="npm downloads">
+  </a>
   <br>
   <a href="https://github.com/VincentZyu233/koishi-plugin-awa-quote-image" target="_blank">
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
@@ -22,6 +25,7 @@ export const usage = `
   <a href="https://qm.qq.com/q/ZN7fxZ3qCq" target="_blank">
     <img src="https://img.shields.io/badge/QQ群-1085190201-1AAD19?style=flat-square" alt="QQ群">
   </a>
+  <br>
 </p>
 
 <h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
