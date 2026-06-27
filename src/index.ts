@@ -1,5 +1,4 @@
 import { Context, h } from 'koishi'
-import path from 'path'
 
 import { } from 'koishi-plugin-adapter-onebot';
 
@@ -7,8 +6,9 @@ import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
 import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
-import { checkAndDownloadFonts, fileToBase64 } from './utils';
+import { checkAndDownloadFonts, fileToBase64WithFallback } from './utils';
 import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData } from './qq';
+import { DEFAULT_SOURCE_HAN_SERIF_PATH } from './constants';
 
 export const inject = {
 	required: ["puppeteer", "http"]
@@ -40,34 +40,33 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			await session.send(msg);
 		});
 
-	// 异步检查字体文件并注册 aqt 指令
-	checkAndDownloadFonts(ctx, PLUGIN_NAME).then((success) => {
-		if (success) {
-			ctx.command(
-				config.aqtCommandName + ' [text:text]',
-				"回复/引用某个群u说的话, 制作名人名言图片"
-			)
-				.alias("aqt")
-				.option("imageStyleIdx", "-i, --idx, --index <idx:number> 图片样式索引")
-				.option("enableDarkMode", "-d, --dark, --darkmode <enableDarkMode:string> 启用深色模式")
-				.option("newlines", "--newlines, --no-newlines 是否保留原始消息换行（默认开启）")
-				.option("verbose", "-v, --verbose 在session和console打印详细参数信息")
-				.action(async ({ session, options }) => {
-					try {
-						do_aqt({ session, options });
-					} catch (error) {
-						let errorMsg = `❌ 渲染名人名言图片失败！\n\n🔍 错误信息：${error}\n\n💡 如果问题持续，请联系管理员或查看控制台日志 📝`;
-						if (config.verboseSessionLog || options.verbose)
-							await session.send(errorMsg);
-						if (config.verboseConsoleLog || options.verbose)
-							ctx.logger.error(errorMsg);
-					}
-				});
-			ctx.logger.info(`[${PLUGIN_NAME}] aqt 指令注册完成`);
-		} else {
-			ctx.logger.warn(`[${PLUGIN_NAME}] 字体文件不可用，aqt 指令未注册`);
-		}
-	});
+	// 立即注册 aqt 指令；字体在执行时检查，避免异步下载完成后才注册命令。
+	ctx.command(
+		config.aqtCommandName + ' [text:text]',
+		"回复/引用某个群u说的话, 制作名人名言图片"
+	)
+		.alias("aqt")
+		.option("imageStyleIdx", "-i, --idx, --index <idx:number> 图片样式索引")
+		.option("enableDarkMode", "-d, --dark, --darkmode <enableDarkMode:string> 启用深色模式")
+		.option("newlines", "--newlines, --no-newlines 是否保留原始消息换行（默认开启）")
+		.option("verbose", "-v, --verbose 在session和console打印详细参数信息")
+		.action(async ({ session, options }) => {
+			try {
+				const fontsReady = await checkAndDownloadFonts(ctx, PLUGIN_NAME);
+				if (!fontsReady) {
+					ctx.logger.error(`[${PLUGIN_NAME}] 字体下载失败，将尝试使用已有字体或默认字体继续渲染`);
+				}
+
+				await do_aqt({ session, options });
+			} catch (error) {
+				let errorMsg = `❌ 渲染名人名言图片失败！\n\n🔍 错误信息：${error}\n\n💡 如果问题持续，请联系管理员或查看控制台日志 📝`;
+				if (config.verboseSessionLog || options.verbose)
+					await session.send(errorMsg);
+				if (config.verboseConsoleLog || options.verbose)
+					ctx.logger.error(errorMsg);
+			}
+		});
+	ctx.logger.info(`[${PLUGIN_NAME}] aqt 指令注册完成`);
 
 	async function do_aqt({ session, options }) {
 		const isVerbose = config.verboseConsoleLog || options.verbose
@@ -112,7 +111,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 		const FALLBACK_STYLE_DETAIL_OBJ = {
 			styleKey: IMAGE_STYLE_KEY_ARR[0],
-			fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+			fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 			darkMode: true,
 		}
 
@@ -243,7 +242,15 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		} catch (e: any) {
 			ctx.logger.warn(`[${PLUGIN_NAME}] 头像下载失败: ${e?.message || e}`)
 		}
-		const font_base64 = await fileToBase64(ctx, PLUGIN_NAME, selectedStyleDetailObj.fontPath);
+		const fontResult = await fileToBase64WithFallback(ctx, PLUGIN_NAME, selectedStyleDetailObj.fontPath);
+		const font_base64 = fontResult.fontBase64;
+		if (fontResult.fallbackUsed) {
+			const fallbackMsg = `[${PLUGIN_NAME}] 字体读取失败，已 fallback 到默认字体: source=${selectedStyleDetailObj.fontPath}, fallback=${fontResult.usedFontPath}, error=${fontResult.error}`;
+			if (config.verboseConsoleLog || options.verbose)
+				ctx.logger.warn(fallbackMsg);
+			if (config.verboseSessionLog || options.verbose)
+				await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}⚠️ 字体读取失败，已使用默认字体继续渲染。\n\n${fallbackMsg}`);
+		}
 
 		const argMsgArr = [
 			`${config.enableQuote ? h.quote(session.messageId) : ''}${PLUGIN_NAME} 参数信息`,

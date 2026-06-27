@@ -1,8 +1,8 @@
 import { Schema } from 'koishi'
-import path from 'path'
 
 import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './type'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
+import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH } from './constants'
 
 export interface ImageStyleDetail {
 	/** 🖌️ 图片渲染样式 key */
@@ -124,42 +124,42 @@ export const Config: Schema<Config> = Schema.intersect([
 			.default([
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[0],
-					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 					darkMode: false,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[0],
-					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 					darkMode: true,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[1],
-					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 					darkMode: false,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[1],
-					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 					darkMode: true,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[2],
-					fontPath: path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'),
+					fontPath: DEFAULT_LXGW_WENKAI_PATH,
 					darkMode: false,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[2],
-					fontPath: path.resolve(__dirname, '../assets/LXGWWenKaiMono-Regular.ttf'),
+					fontPath: DEFAULT_LXGW_WENKAI_PATH,
 					darkMode: true,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[3],
-					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 					darkMode: false,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[3],
-					fontPath: path.resolve(__dirname, '../assets/SourceHanSerifSC-SemiBold.otf'),
+					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
 					darkMode: true,
 				},
 			])

@@ -8,23 +8,28 @@ export const usage = `
   <a href="https://www.npmjs.com/package/koishi-plugin-awa-quote-image" target="_blank">
     <img src="https://img.shields.io/npm/v/koishi-plugin-awa-quote-image?style=flat-square" alt="npm version">
   </a>
+  <br>
   <a href="https://github.com/VincentZyu233/koishi-plugin-awa-quote-image" target="_blank">
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
   </a>
   <a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image" target="_blank">
     <img src="https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white" alt="Gitee">
   </a>
-  <a href="https://qm.qq.com/q/ZN7fxZ3qCq" target="_blank">
-    <img src="https://img.shields.io/badge/QQ群-1085190201-1AAD19?style=flat-square" alt="QQ群">
-  </a>
+  <br>
   <a href="https://forum.koishi.xyz/t/topic/12566" target="_blank">
     <img src="https://img.shields.io/badge/Koishi Forum-12566-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white" alt="Forum">
+  </a>
+  <a href="https://qm.qq.com/q/ZN7fxZ3qCq" target="_blank">
+    <img src="https://img.shields.io/badge/QQ群-1085190201-1AAD19?style=flat-square" alt="QQ群">
   </a>
 </p>
 
 <h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
 
-<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
+<h2>💬 交流反馈</h2>
+<p>🐛 Bug 反馈 / 💡 建议 / 👨‍💻 插件开发交流，欢迎加群：</p>
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了</del></p>
+<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174🎉</p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
 <p><b>💡 提示：</b>

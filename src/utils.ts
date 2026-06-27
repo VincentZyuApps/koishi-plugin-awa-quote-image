@@ -2,14 +2,21 @@ import path from 'path'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import type { Context } from 'koishi'
-
-const ASSETS_DIR = path.resolve(__dirname, '../assets')
-const SOURCE_HAN_SERIF_PATH = path.join(ASSETS_DIR, 'SourceHanSerifSC-SemiBold.otf')
-const LXGW_WENKAI_PATH = path.join(ASSETS_DIR, 'LXGWWenKaiMono-Regular.ttf')
+import {
+  DEFAULT_SOURCE_HAN_SERIF_PATH,
+  LXGW_WENKAI_URL,
+  SOURCE_HAN_SERIF_URL,
+  getFontDirByBaseDir,
+  getLxgwWenKaiPathByBaseDir,
+  getSourceHanSerifPathByBaseDir,
+} from './constants'
 
 export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
-  const sourceHanSerifExists = existsSync(SOURCE_HAN_SERIF_PATH)
-  const lxgwWenKaiExists = existsSync(LXGW_WENKAI_PATH)
+  const fontDir = getFontDirByBaseDir(ctx.baseDir)
+  const sourceHanSerifPath = getSourceHanSerifPathByBaseDir(ctx.baseDir)
+  const lxgwWenKaiPath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
+  const sourceHanSerifExists = existsSync(sourceHanSerifPath)
+  const lxgwWenKaiExists = existsSync(lxgwWenKaiPath)
 
   if (sourceHanSerifExists && lxgwWenKaiExists) {
     ctx.logger.info(`[${pluginName}] 字体文件已存在，跳过下载`)
@@ -19,9 +26,9 @@ export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
   ctx.logger.info(`[${pluginName}] 开始下载字体文件...`)
 
   try {
-    await mkdir(ASSETS_DIR, { recursive: true })
+    await mkdir(fontDir, { recursive: true })
   } catch (error) {
-    ctx.logger.error(`[${pluginName}] 创建assets目录失败: ${error}`)
+    ctx.logger.error(`[${pluginName}] 创建字体目录失败: ${error}`)
     return false
   }
 
@@ -32,8 +39,8 @@ export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
     downloadPromises.push(downloadFont(
       ctx,
       pluginName,
-      'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf',
-      SOURCE_HAN_SERIF_PATH,
+      SOURCE_HAN_SERIF_URL,
+      sourceHanSerifPath,
     ))
   }
 
@@ -42,8 +49,8 @@ export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
     downloadPromises.push(downloadFont(
       ctx,
       pluginName,
-      'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf',
-      LXGW_WENKAI_PATH,
+      LXGW_WENKAI_URL,
+      lxgwWenKaiPath,
     ))
   }
 
@@ -82,5 +89,26 @@ export async function fileToBase64(ctx: Context, pluginName: string, filePath: s
   } catch (error) {
     ctx.logger.error(`[${pluginName}]文件转换成base64失败: ${error.message}`)
     throw error
+  }
+}
+
+export async function fileToBase64WithFallback(
+  ctx: Context,
+  pluginName: string,
+  filePath: string,
+): Promise<{ fontBase64: string; usedFontPath: string; fallbackUsed: boolean; error?: unknown }> {
+  try {
+    return {
+      fontBase64: await fileToBase64(ctx, pluginName, filePath),
+      usedFontPath: filePath,
+      fallbackUsed: false,
+    }
+  } catch (error) {
+    return {
+      fontBase64: await fileToBase64(ctx, pluginName, DEFAULT_SOURCE_HAN_SERIF_PATH),
+      usedFontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
+      fallbackUsed: true,
+      error,
+    }
   }
 }
