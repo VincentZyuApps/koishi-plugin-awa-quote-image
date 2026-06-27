@@ -2,14 +2,46 @@ import path from 'path'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import type { Context } from 'koishi'
-import {
-  DEFAULT_SOURCE_HAN_SERIF_PATH,
-  LXGW_WENKAI_URL,
-  SOURCE_HAN_SERIF_URL,
-  getFontDirByBaseDir,
-  getLxgwWenKaiPathByBaseDir,
-  getSourceHanSerifPathByBaseDir,
-} from './constants'
+
+export const SOURCE_HAN_SERIF_FILE_NAME = 'SourceHanSerifSC-SemiBold.otf'
+export const LXGW_WENKAI_FILE_NAME = 'LXGWWenKaiMono-Regular.ttf'
+
+export const SOURCE_HAN_SERIF_URL = 'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf'
+export const LXGW_WENKAI_URL = 'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf'
+
+export function getFontDirByBaseDir(baseDir: string) {
+  return path.join(baseDir, 'data', 'fonts')
+}
+
+export function getSourceHanSerifPathByBaseDir(baseDir: string) {
+  return path.join(getFontDirByBaseDir(baseDir), SOURCE_HAN_SERIF_FILE_NAME)
+}
+
+export function getLxgwWenKaiPathByBaseDir(baseDir: string) {
+  return path.join(getFontDirByBaseDir(baseDir), LXGW_WENKAI_FILE_NAME)
+}
+
+// Schema 默认值无法拿到 ctx.baseDir，只能用 cwd 作为展示 fallback。
+// 运行时必须优先使用 ctx.baseDir，见 resolveRuntimeFontPath()。
+export const DEFAULT_SOURCE_HAN_SERIF_PATH = getSourceHanSerifPathByBaseDir(process.cwd())
+export const DEFAULT_LXGW_WENKAI_PATH = getLxgwWenKaiPathByBaseDir(process.cwd())
+
+export function resolveRuntimeFontPath(ctx: Context, filePath: string): string {
+  const sourceHanSerifPath = getSourceHanSerifPathByBaseDir(ctx.baseDir)
+  const lxgwWenKaiPath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
+
+  if (!filePath) return sourceHanSerifPath
+
+  if (filePath === DEFAULT_SOURCE_HAN_SERIF_PATH || filePath === sourceHanSerifPath) {
+    return sourceHanSerifPath
+  }
+
+  if (filePath === DEFAULT_LXGW_WENKAI_PATH || filePath === lxgwWenKaiPath) {
+    return lxgwWenKaiPath
+  }
+
+  return filePath
+}
 
 export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
   const fontDir = getFontDirByBaseDir(ctx.baseDir)
@@ -83,7 +115,8 @@ export async function downloadFont(ctx: Context, pluginName: string, url: string
 
 export async function fileToBase64(ctx: Context, pluginName: string, filePath: string): Promise<string> {
   try {
-    const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath)
+    const runtimePath = resolveRuntimeFontPath(ctx, filePath)
+    const absolutePath = path.isAbsolute(runtimePath) ? runtimePath : path.resolve(__dirname, runtimePath)
     const buffer = await readFile(absolutePath)
     return buffer.toString('base64')
   } catch (error) {
@@ -97,16 +130,19 @@ export async function fileToBase64WithFallback(
   pluginName: string,
   filePath: string,
 ): Promise<{ fontBase64: string; usedFontPath: string; fallbackUsed: boolean; error?: unknown }> {
+  const runtimeFontPath = resolveRuntimeFontPath(ctx, filePath)
+  const fallbackFontPath = getSourceHanSerifPathByBaseDir(ctx.baseDir)
+
   try {
     return {
-      fontBase64: await fileToBase64(ctx, pluginName, filePath),
-      usedFontPath: filePath,
+      fontBase64: await fileToBase64(ctx, pluginName, runtimeFontPath),
+      usedFontPath: runtimeFontPath,
       fallbackUsed: false,
     }
   } catch (error) {
     return {
-      fontBase64: await fileToBase64(ctx, pluginName, DEFAULT_SOURCE_HAN_SERIF_PATH),
-      usedFontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
+      fontBase64: await fileToBase64(ctx, pluginName, fallbackFontPath),
+      usedFontPath: fallbackFontPath,
       fallbackUsed: true,
       error,
     }

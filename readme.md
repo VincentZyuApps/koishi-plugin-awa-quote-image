@@ -10,10 +10,12 @@
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image)
 
-[![Koishi Forum](https://img.shields.io/badge/forum.koishi.xyz_topic_11986-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/11986)
-[![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
+[![Koishi Forum](https://img.shields.io/badge/Koishi%20Forum-12566-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white)](https://forum.koishi.xyz/t/topic/12566)
+[![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white)](https://qm.qq.com/q/ZN7fxZ3qCq)
 
-<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了</del> </p> 
+<h2>💬 交流反馈</h2>
+<p>🐛 Bug 反馈 / 💡 建议 / 👨‍💻 插件开发交流，欢迎加群：</p>
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了）</del></p> 
 <p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
@@ -27,8 +29,9 @@
 请确保在 Koishi 控制台中已经安装并启用了以下插件：
 - 📦 `puppeteer` - 用于渲染图片
 - 🌐 `http` - 用于网络请求
+- 💾 `database` - 可选，用于 QQ 官方 Bot 引用消息的磁盘缓存
 
-如果没有安装这两个插件，本插件将无法工作！
+如果没有安装 `puppeteer` 和 `http`，本插件将无法工作。`database` 是可选服务；QQ 引用缓存默认使用 database 模式，未启用 database 时会自动退回内存缓存。
 
 ### 字体手动下载链接：
 [https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts)
@@ -67,6 +70,7 @@ aqt
 **可选参数：**
 - `-i <数字>` 或 `--index <数字>`: 指定图片样式索引 🎯
 - `-v` 或 `--verbose`: 显示详细参数信息 📊
+- `--no-newlines`: 折叠原始消息换行 📝
 
 **示例：**
 ```
@@ -102,6 +106,78 @@ aqt -v      # 显示详细信息 📊
 - **原始黑底白字** ⚫: 经典黑白配色，简洁大方
 - **现代思源宋体** ✨: 磨砂玻璃效果，渐变背景，现代高级感
 - **简洁文楷** 🎨: 扁平化设计，清爽简约，适合日常使用
+- **QQ 消息气泡** 💬: 模仿 QQ 原生气泡卡片，可显示群头衔/等级
+
+## 🤖 QQ 官方 Bot 适配说明
+
+本插件对 QQ官方Bot平台 做了专门适配：
+
+- 严格使用被引用消息作者的头像和用户名。
+- 如果无法获取被引用消息作者完整的 `content / userId / username / avatar`，会直接在控制台和会话内报错并停止渲染。
+- 不会 fallback 到触发 `aqt` 指令的用户，避免引用 A 的消息却渲染成 B 的头像和昵称。
+- QQ 引用解析失败时会优先使用 QQ Markdown 发送错误提示。
+
+相关配置：
+
+- `qqBotAppId`: QQ 官方 Bot AppId，用于拼接 `https://q.qlogo.cn/qqapp/{appId}/{openid}/640` 头像地址；留空则读取适配器的 `bot.config.id`。
+- `qqQuoteCacheMode`: QQ 引用缓存模式，支持 `database` / `memory`，默认 `database`。
+- `enableQQMarkdown`: QQ 平台发送图片后是否附带 Markdown + 按钮消息。
+- `qqMarkdownKeyboardJson`: 自定义 QQ Markdown 按钮 JSON。
+
+缓存模式说明：
+
+- `database`: 磁盘缓存，使用 Koishi database 服务保存 REFIDX 映射，重启后仍可命中。
+- `memory`: 内存缓存，重启后清空。
+
+## 🔧 配置项
+
+### 📌 基础配置
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `acsCommandName` | `string` | `"名人名言图片样式列表"` | 查看图片样式列表的指令名称 |
+| `aqtCommandName` | `string` | `"名人名言"` | 制作名人名言图片的指令名称，别名为 `aqt` |
+
+### 💬 会话设置
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `enableQuote` | `boolean` | `true` | bot 发送消息时是否引用触发指令的消息 |
+| `onebotNameStyle` | `"name-only" \| "card-only" \| "name-card" \| "card-name"` | `"name-card"` | OneBot 平台用户名显示样式；非 OneBot 平台始终显示用户名 |
+| `showUserId` | `boolean` | `true` | 是否在图片中显示用户 ID，建议保持开启，降低伪造聊天记录风险 |
+| `showTimestamp` | `boolean` | `true` | 是否在图片中显示时间戳，建议保持开启 |
+| `enableWatingHint` | `boolean` | `true` | 是否显示“正在渲染，请稍候”的等待提示 |
+| `showGroupTitleInQqBubble` | `boolean` | `true` | QQ 气泡样式中是否显示群头衔和群等级，仅 OneBot 平台生效 |
+
+### 🖼️ 图片渲染配置
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `imageStyleDetails` | `ImageStyleDetail[]` | 8 组内置样式 | 图片样式列表，第一行为默认样式，其余可用 `aqt -i <索引>` 指定 |
+| `imageStyleDetails[].styleKey` | 样式枚举 | 见默认配置 | 图片模板样式，如原始黑底白字、现代思源宋体、简洁文楷、QQ 消息气泡 |
+| `imageStyleDetails[].fontPath` | `string` | 默认字体路径 | 当前样式使用的字体文件路径 |
+| `imageStyleDetails[].darkMode` | `boolean` | 见默认配置 | 当前样式是否启用深色模式 |
+| `imageWidth` | `number` | `1920` | 渲染图片宽度，单位 px |
+| `imageMinHeight` | `number` | `1080` | 渲染图片最小高度，单位 px |
+| `imageType` | `"png" \| "jpeg" \| "webp"` | `"png"` | 输出图片格式；PNG 不支持调整 quality |
+| `pageScreenshotQuality` | `number` | `60` | Puppeteer 截图质量，范围 0-100，对 PNG 无效 |
+| `showRenderInfo` | `boolean` | `false` | 发送图片时是否在消息末尾追加渲染耗时和样式信息 |
+
+### 🤖 QQ 官方 Bot 平台设置
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `enableQQMarkdown` | `boolean` | `true` | QQ 平台发送图片后是否附带 Markdown + 按钮消息 |
+| `qqMarkdownKeyboardJson` | `string` | 默认键盘 JSON | QQ Markdown 按钮 JSON 配置，支持变量 `${aqtCommandName}` `${acsCommandName}` `${userId}` |
+| `qqQuoteCacheMode` | `"database" \| "memory"` | `"database"` | QQ 引用消息缓存模式；`database` 使用 Koishi database 服务，`memory` 重启后清空 |
+| `qqBotAppId` | `string` | `""` | QQ 官方 Bot AppId，用于拼接 `q.qlogo.cn/qqapp/{appId}/{openid}/640` 头像地址；留空则读取 `bot.config.id` |
+
+### 🐛 调试设置
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|---|---|---|---|
+| `verboseSessionLog` | `boolean` | `false` | 是否在会话中输出详细参数和调试信息；生产环境不建议开启 |
+| `verboseConsoleLog` | `boolean` | `false` | 是否在控制台输出详细参数和 QQ 原始事件解析信息 |
 
 ## 📥 字体文件获取说明
 
@@ -113,7 +189,7 @@ aqt -v      # 显示详细信息 📊
 
 1. 🔗 **下载地址**：[https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts)
 
-2. 📂 **存放位置**：下载后请将字体文件放入插件的 `assets` 文件夹中
+2. 📂 **存放位置**：下载后请将字体文件放入 Koishi 运行目录的 `data/fonts` 文件夹中
 
 3. 📋 **需要的字体文件**：
    - `SourceHanSerifSC-SemiBold.otf` （思源宋体）📝

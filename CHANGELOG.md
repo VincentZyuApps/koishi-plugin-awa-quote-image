@@ -1,19 +1,46 @@
 # 更新日志
 
+## 0.2.7-beta.13+20260628
+
+### ✨ 新功能
+
+- 新增 QQ 引用缓存模式配置：`qqQuoteCacheMode`
+  - `database`：默认模式，使用 Koishi database 服务保存 REFIDX 引用缓存
+  - `memory`：仅使用内存缓存，重启后清空
+- package.json 声明 `database` 为可选服务，`puppeteer` / `http` 仍为必需服务
+- QQ 平台引用解析失败提示优先使用 QQ Markdown 发送
+
+### 🔧 改进
+
+- QQ 平台严格使用被引用消息作者的头像和用户名，不再 fallback 到触发 `aqt` 指令的用户
+- 获取不到被引用消息作者完整 `content / userId / username / avatar` 时，直接在 console 和会话报错并停止渲染
+- QQ 官方 Bot 头像配置统一改为 `qqBotAppId`，语义对齐 `q.qlogo.cn/qqapp/{appId}/{openid}/640`
+- database 表注册改为 `ctx.inject(['database'], ...)`，避免在 `apply()` 顶层用 `ctx.database` 判断服务状态
+- 字体运行时路径迁移到 Koishi 运行目录的 `data/fonts`
+- README、usage、QQ 适配开发文档同步更新当前 QQ 严格解析策略
+
+### 🐛 修复
+
+- 修复 QQ 平台引用他人消息时头像和用户名可能错误显示为触发者的问题
+- 修复 QQ 引用作者信息缺失时仍继续渲染的风险
+- 清理旧 AppId 配置名的文案与配置残留
+
+---
+
 ## 0.2.1-beta.2+20260626
 
 ### ✨ 新功能
 
 - **QQ 官方适配器引用消息支持**：新增 `src/qq.ts`，`resolveQQData()` 从 `message_scene.ext` + `msg_elements[0]` 解析引用消息，内存级 LRU 200 缓存
 - **新增配置项**：
-  - `qqBotUin` — QQ 官方 Bot 机器人 UIN，用于头像地址拼接
+  - `qqBotAppId` — QQ 官方 Bot AppId，用于头像地址拼接
   - `enableQQMarkdown` — 是否在 QQ 平台发送 Markdown 按钮消息
   - `qqMarkdownKeyboardJson` — 自定义 Markdown 按钮 JSON
 
 ### 🔧 改进
 
 - **重构 `do_aqt` 为三优先调度**：`session.quote` > QQ 自救 > 报错
-- **头像地址**：支持 `config.qqBotUin` → fallback `bot.config.id`，统一 HTTPS
+- **头像地址**：支持 `config.qqBotAppId` → fallback `bot.config.id`，统一 HTTPS
 - **`renderAndSend` 分离**：`preUserObj` 绕过 `getUser` 缺失平台
 - **`config.ts` 分组重排**：基础/会话/渲染/QQ/调试，interface 对齐 schema
 - **合并 `qq_markdown.ts` 至 `src/qq.ts`**

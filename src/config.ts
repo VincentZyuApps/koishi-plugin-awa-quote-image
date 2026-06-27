@@ -2,7 +2,7 @@ import { Schema } from 'koishi'
 
 import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './type'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
-import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH } from './constants'
+import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH } from './utils'
 
 export interface ImageStyleDetail {
 	/** 🖌️ 图片渲染样式 key */
@@ -49,9 +49,13 @@ export interface Config {
 	enableQQMarkdown: boolean
 	/** 📋 QQ Markdown 按钮 JSON 配置 */
 	qqMarkdownKeyboardJson: string
+	/** 🧠 QQ 引用消息缓存模式 */
+	qqQuoteCacheMode: 'database' | 'memory'
 
-	/** 🤖 QQ 官方 Bot 的机器人 uin（QQ号，用于头像地址，如 3889704577） */
-	qqBotUin: string
+	/** 🤖 QQ 官方 Bot 的 AppId（用于 qqapp 头像地址，如 102800160） */
+	qqBotAppId: string
+	/** @deprecated 旧配置里可能存在的 Bot QQ 号，用于 Bot 自身头像 */
+	botUid?: string
 
 	/** 🐛 是否在会话中输出调试信息 */
 	verboseSessionLog: boolean
@@ -202,10 +206,18 @@ export const Config: Schema<Config> = Schema.intersect([
 			.role('textarea', { rows: [5, 10] })
 			.default(stringifyCompact(DEFAULT_KEYBOARD_ROWS))
 			.description('📋 QQ Markdown 按钮 JSON 配置<br><em>支持变量: <code>${aqtCommandName}</code> <code>${acsCommandName}</code> <code>${userId}</code></em>'),
-		qqBotUin: Schema
+		qqQuoteCacheMode: Schema
+			.union([
+				Schema.const('database').description('💾 磁盘缓存（推荐，需要 database 服务）'),
+				Schema.const('memory').description('🧠 内存缓存（重启后清空）'),
+			])
+			.role('radio')
+			.default('database')
+			.description('🧠 QQ 引用消息缓存模式<br><i>磁盘模式使用 database 服务保存 REFIDX 映射，重启后仍可命中；如果未启用 database，会自动退回内存模式并输出警告。</i>'),
+		qqBotAppId: Schema
 			.string()
 			.default('')
-			.description('🤖 QQ 官方 Bot 的机器人 uin（QQ号，用于拼接头像地址，如 3889704577）<br><i>留空则自动从 bot.config 获取</i>'),
+			.description('🤖 QQ 官方 Bot 的 AppId（用于拼接 qqapp 头像地址）<br><i>留空则自动从 bot.config.id 获取</i>'),
 	}).description('🤖 QQ 官方 Bot 平台设置'),
 
 	Schema.object({

@@ -20,20 +20,21 @@ export const usage = `
   </a>
   <br>
   <a href="https://forum.koishi.xyz/t/topic/12566" target="_blank">
-    <img src="https://img.shields.io/badge/Koishi Forum-12566-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white" alt="Forum">
+    <img src="https://img.shields.io/badge/Koishi%20Forum-12566-5546A3?style=for-the-badge&logo=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Ff%2Ff3%2FKoishi.js_Logo.png&logoColor=white" alt="Forum">
   </a>
   <a href="https://qm.qq.com/q/ZN7fxZ3qCq" target="_blank">
-    <img src="https://img.shields.io/badge/QQ群-1085190201-1AAD19?style=flat-square" alt="QQ群">
+    <img src="https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=flat-square&logo=qq&logoColor=white" alt="QQ群">
   </a>
   <br>
 </p>
 
 <h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
+<p><b>💾 database 是可选服务：</b>QQ 引用缓存默认使用 database 磁盘模式；未启用 database 时会自动退回内存缓存。</p>
 
 <h2>💬 交流反馈</h2>
 <p>🐛 Bug 反馈 / 💡 建议 / 👨‍💻 插件开发交流，欢迎加群：</p>
-<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了</del></p>
-<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174🎉</p>
+<p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了）</del></p>
+<p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
 
 <p><b>💡 提示：</b>
@@ -50,6 +51,15 @@ export const usage = `
 
 <h2 style="color: #ff4444; font-weight: 900; font-size: 22px; margin: 20px 0; border: 2px solid #ff4444; padding: 12px; border-radius: 8px; background: rgba(255,68,68,0.08);">🚨 强烈建议保持开启「显示用户 ID」和「显示时间戳」！<br>防止有人换头像、改名字伪造聊天记录，关闭后果自负，与作者无关捏 ⚠️</h2>
 
+<h3>🤖 QQ 官方 Bot / qq-crack 适配说明</h3>
+<ul>
+  <li>✅ QQ 平台会严格使用被引用消息作者的头像和用户名。</li>
+  <li>🚫 如果无法获取被引用作者完整的 <code>content / userId / username / avatar</code>，会直接报错并停止渲染。</li>
+  <li>🚫 不会 fallback 到触发 <code>aqt</code> 指令的用户，避免引用 A 的消息却渲染成 B 的头像和昵称。</li>
+  <li>💾 <code>qqQuoteCacheMode</code> 支持 <code>database</code> / <code>memory</code>，默认 <code>database</code>。</li>
+  <li>🤖 <code>qqBotAppId</code> 用于拼接 QQ 官方 Bot 头像地址；留空则读取适配器的 <code>bot.config.id</code>。</li>
+</ul>
+
 <h3>🎨 字体使用声明</h3>
 <p>本插件使用以下开源字体进行图像渲染：</p>
 <ul>
@@ -62,7 +72,7 @@ export const usage = `
 <p>🤖 插件会在首次使用时自动下载所需字体文件。如果自动下载失败，请手动下载字体文件：</p>
 <ul>
   <li>🔗 字体下载地址：<a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts">https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts</a></li>
-  <li>📁 下载后请将字体文件放入插件的 <code>assets</code> 文件夹中</li>
+  <li>📁 下载后请将字体文件放入 Koishi 运行目录的 <code>data/fonts</code> 文件夹中</li>
   <li>📋 需要的字体文件：<code>SourceHanSerifSC-SemiBold.otf</code> 和 <code>LXGWWenKaiMono-Regular.ttf</code></li>
 </ul>
 

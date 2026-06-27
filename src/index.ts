@@ -6,12 +6,12 @@ import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
 import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
-import { checkAndDownloadFonts, fileToBase64WithFallback } from './utils';
-import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData } from './qq';
-import { DEFAULT_SOURCE_HAN_SERIF_PATH } from './constants';
+import { DEFAULT_SOURCE_HAN_SERIF_PATH, checkAndDownloadFonts, fileToBase64WithFallback, resolveRuntimeFontPath } from './utils';
+import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData, registerQQQuoteCacheMiddleware, setupQQQuoteCacheDatabase } from './qq';
 
 export const inject = {
-	required: ["puppeteer", "http"]
+	required: ["puppeteer", "http"],
+	optional: ["database"],
 };
 
 export const name = 'awa-quote-image';
@@ -21,6 +21,22 @@ export { usage } from './usage'
 export const Config = ConfigSchema
 
 export function apply(ctx: Context, config: AwaQuoteImageConfig) {
+	let databaseCtx: Context | null = null
+	const qqQuoteCacheRuntime = {
+		getDatabaseContext: () => databaseCtx,
+	}
+
+	if (config.qqQuoteCacheMode === 'database') {
+		ctx.inject(['database'], (ctx) => {
+			databaseCtx = ctx
+			setupQQQuoteCacheDatabase(ctx, config)
+			ctx.on('dispose', () => {
+				if (databaseCtx === ctx) databaseCtx = null
+			})
+		})
+	}
+	registerQQQuoteCacheMiddleware(ctx, config, qqQuoteCacheRuntime);
+
 	// 立即注册 acs 指令
 	ctx.command(
 		config.acsCommandName,
@@ -75,24 +91,47 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		let quoteData: { content: string; userId: string; guildId: string }
 		let preUserObj: { name: string; avatar: string } | null = null
 
-		// Priority 1: session.quote 有内容（OneBot + crack适配器缓存命中）
-		if (session.quote?.content) {
-			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 走 Priority 1 session.quote`)
-			quoteData = {
-				content: session.quote.content,
-				userId: session.quote.user?.id || '',
-				guildId: session.quote.guild?.id || session.guildId,
-			}
-		// Priority 2: QQ 自救（内置适配器，从 msg_elements[0] 取引用原文）
-		} else if (session.platform === 'qq') {
-			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 走 Priority 2 resolveQQData`)
-			const qq = await resolveQQData(session, options, ctx, config)
+		// Priority 1: QQ 官方 / qq-crack 专用解析。
+		// QQ 平台不能把作者 fallback 到触发者，否则不同人引用时头像和昵称会错。
+		if (session.platform === 'qq') {
+			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 走 Priority 1 resolveQQData`)
+			const qq = await resolveQQData(session, options, ctx, config, qqQuoteCacheRuntime)
 			if (!qq) {
-				await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}💬 请先回复或引用一条消息，我才能帮你制作名人名言图片哦~ 📝`)
+				const quoteAuthorErrMsg = `[${PLUGIN_NAME}] QQ 平台未能获取被引用消息作者的完整信息（content/userId/username/avatar），已停止渲染，不会使用触发 aqt 的用户信息。`
+				ctx.logger.error(quoteAuthorErrMsg)
+				const markdown = [
+					'# ❌ QQ 引用解析失败',
+					'',
+					'未能获取被引用消息作者的头像和用户名，已停止渲染。',
+					'',
+					'> 不会使用触发 aqt 指令的人的头像或用户名。',
+					'',
+					'请确认引用的是机器人在线期间可查询到的群消息，或使用 `-v` 查看控制台里的 QQ 原始事件。',
+				].join('\n')
+				try {
+					await sendQQMarkdown(session, markdown, buildQuoteKeyboard(config, ''), true)
+				} catch (error: any) {
+					ctx.logger.error(`[${PLUGIN_NAME}] QQ Markdown 错误提示发送失败: ${error?.message || error}`)
+					await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}❌ QQ 平台未能获取被引用消息的作者头像和用户名，已停止渲染。\n\n不会使用触发 aqt 指令的人的头像或用户名。\n\n请确认引用的是机器人在线期间可查询到的群消息，或使用 -v 查看控制台里的 QQ 原始事件。`)
+				}
 				return
 			}
 			quoteData = qq
 			preUserObj = qq.username ? { name: qq.username, avatar: qq.avatar } : null
+		// Priority 2: session.quote 有内容（OneBot + crack适配器缓存命中）
+		} else if (session.quote?.content) {
+			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 走 Priority 1 session.quote`)
+			if (!session.quote.user?.id) {
+				const quoteUserIdErrMsg = `[${PLUGIN_NAME}] 未能获取被引用消息的作者 ID，已停止渲染。`
+				ctx.logger.error(quoteUserIdErrMsg)
+				await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}❌ 未能获取被引用消息的作者 ID，已停止渲染。`)
+				return
+			}
+			quoteData = {
+				content: session.quote.content,
+				userId: session.quote.user.id,
+				guildId: session.quote.guild?.id || session.guildId,
+			}
 		// Priority 3: 其他平台无引用
 		} else {
 			if (isVerbose) ctx.logger.info(`[${PLUGIN_NAME}] do_aqt: 无引用内容，报错`)
@@ -111,7 +150,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 		const FALLBACK_STYLE_DETAIL_OBJ = {
 			styleKey: IMAGE_STYLE_KEY_ARR[0],
-			fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
+			fontPath: resolveRuntimeFontPath(ctx, DEFAULT_SOURCE_HAN_SERIF_PATH),
 			darkMode: true,
 		}
 
@@ -157,6 +196,13 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				? await session.bot.getUser(quoteData.userId, session.channelId)
 				: { name: quoteData.userId, avatar: '' }
 		);
+		if (!session_user_obj?.name || !session_user_obj?.avatar) {
+			const quoteUserInfoErrMsg = `[${PLUGIN_NAME}] 未能获取被引用消息作者的用户名或头像，已停止渲染: userId=${quoteData.userId}, name=${session_user_obj?.name || '(empty)'}, avatar=${session_user_obj?.avatar || '(empty)'}`
+			ctx.logger.error(quoteUserInfoErrMsg)
+			await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}❌ 未能获取被引用消息作者的用户名或头像，已停止渲染。`)
+			waitingHintMsgId && await session.bot.deleteMessage(session.channelId, waitingHintMsgId);
+			return
+		}
 		let usernameArg = session_user_obj?.name || quoteData.userId;
 		if (config.onebotNameStyle !== 'name-only' && session.onebot) {
 			const onebot_groupmember_obj = await session.onebot.getGroupMemberInfo(quoteData.guildId, quoteData.userId);
@@ -237,15 +283,22 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 		let avatar_base64 = ''
 		try {
-			const avatar_buffer = await ctx.http.file(session_user_obj.avatar)
-			avatar_base64 = Buffer.from(avatar_buffer.data).toString('base64')
+			if (session_user_obj.avatar) {
+				const avatar_buffer = await ctx.http.file(session_user_obj.avatar)
+				avatar_base64 = Buffer.from(avatar_buffer.data).toString('base64')
+			}
 		} catch (e: any) {
-			ctx.logger.warn(`[${PLUGIN_NAME}] 头像下载失败: ${e?.message || e}`)
+			const avatarErrMsg = `[${PLUGIN_NAME}] 头像下载失败，无法继续渲染: ${e?.message || e}`
+			ctx.logger.error(avatarErrMsg)
+			await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}❌ 未能下载被引用消息作者的头像，已停止渲染。\n\n${avatarErrMsg}`)
+			waitingHintMsgId && await session.bot.deleteMessage(session.channelId, waitingHintMsgId);
+			return
 		}
-		const fontResult = await fileToBase64WithFallback(ctx, PLUGIN_NAME, selectedStyleDetailObj.fontPath);
+		const selectedFontPath = resolveRuntimeFontPath(ctx, selectedStyleDetailObj.fontPath);
+		const fontResult = await fileToBase64WithFallback(ctx, PLUGIN_NAME, selectedFontPath);
 		const font_base64 = fontResult.fontBase64;
 		if (fontResult.fallbackUsed) {
-			const fallbackMsg = `[${PLUGIN_NAME}] 字体读取失败，已 fallback 到默认字体: source=${selectedStyleDetailObj.fontPath}, fallback=${fontResult.usedFontPath}, error=${fontResult.error}`;
+			const fallbackMsg = `[${PLUGIN_NAME}] 字体读取失败，已 fallback 到默认字体: source=${selectedFontPath}, fallback=${fontResult.usedFontPath}, error=${fontResult.error}`;
 			if (config.verboseConsoleLog || options.verbose)
 				ctx.logger.warn(fallbackMsg);
 			if (config.verboseSessionLog || options.verbose)
