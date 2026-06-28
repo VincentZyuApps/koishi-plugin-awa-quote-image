@@ -162,6 +162,8 @@ aqt -v      # 显示详细信息 📊
 | `imageType` | `"png" \| "jpeg" \| "webp"` | `"png"` | 输出图片格式；PNG 不支持调整 quality |
 | `pageScreenshotQuality` | `number` | `60` | Puppeteer 截图质量，范围 0-100，对 PNG 无效 |
 | `showRenderInfo` | `boolean` | `false` | 发送图片时是否在消息末尾追加渲染耗时和样式信息 |
+| `enableReleaseEmojiFont` | `boolean` | `true` | 是否使用插件从 Gitee/GitHub release 下载的 Twemoji 彩色 emoji 字体；关闭后使用系统 emoji 字体 fallback |
+| `emojiFontPath` | `string` | `process.cwd()/data/fonts/TwemojiCOLRv0.ttf` | TwemojiCOLRv0.ttf 字体路径；默认展示 cwd 路径，运行时自动映射到 `ctx.baseDir/data/fonts/TwemojiCOLRv0.ttf` |
 
 ### 🤖 QQ 官方 Bot 平台设置
 
@@ -192,16 +194,32 @@ aqt -v      # 显示详细信息 📊
 1. 🔗 **Gitee 下载地址（优先）**
    - [SourceHanSerifSC-SemiBold.otf](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf)
    - [LXGWWenKaiMono-Regular.ttf](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf)
+   - [TwemojiCOLRv0.ttf](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/TwemojiCOLRv0.ttf)
 
 2. 🔗 **GitHub 下载地址（fallback）**
    - [SourceHanSerifSC-SemiBold.otf](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf)
    - [LXGWWenKaiMono-Regular.ttf](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf)
+   - [TwemojiCOLRv0.ttf](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/TwemojiCOLRv0.ttf)
 
 3. 📂 **存放位置**：下载后请将字体文件放入 Koishi 运行目录的 `data/fonts` 文件夹中
 
 4. 📋 **需要的字体文件**：
    - `SourceHanSerifSC-SemiBold.otf` （思源宋体）📝
    - `LXGWWenKaiMono-Regular.ttf` （霞鹜文楷）✍️
+   - `TwemojiCOLRv0.ttf` （彩色 emoji，可在配置中关闭）😀
+
+### 🖥️ 使用系统 emoji 字体（Debian / Ubuntu 示例）
+如果你把 `enableReleaseEmojiFont` 设为 `false`，插件不会下载和注入 Twemoji 字体，会使用系统 emoji 字体 fallback。Debian / Ubuntu 可以这样安装：
+
+```bash
+apt update
+apt install -y fonts-noto-color-emoji fonts-noto-cjk fontconfig
+fc-cache -fv
+fc-match emoji
+fc-match "Noto Color Emoji"
+```
+
+然后重启 Koishi。
 
 ### 🎨 字体许可说明
 本插件使用的字体均为开源免费字体：

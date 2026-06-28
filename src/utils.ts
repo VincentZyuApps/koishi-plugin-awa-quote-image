@@ -6,12 +6,14 @@ import type { Context } from 'koishi'
 
 export const SOURCE_HAN_SERIF_FILE_NAME = 'SourceHanSerifSC-SemiBold.otf'
 export const LXGW_WENKAI_FILE_NAME = 'LXGWWenKaiMono-Regular.ttf'
+export const TWEMOJI_COLR_FILE_NAME = 'TwemojiCOLRv0.ttf'
 
 const GITEE_RELEASE_BASE = 'https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts'
 const GITHUB_RELEASE_BASE = 'https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts'
 
 export const SOURCE_HAN_SERIF_URL = `${GITEE_RELEASE_BASE}/${SOURCE_HAN_SERIF_FILE_NAME}`
 export const LXGW_WENKAI_URL = `${GITEE_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}`
+export const TWEMOJI_COLR_URL = `${GITEE_RELEASE_BASE}/${TWEMOJI_COLR_FILE_NAME}`
 
 interface FontIntegrity {
   size: number
@@ -36,6 +38,13 @@ const FONT_INTEGRITY: Record<string, FontIntegrity> = {
     sha256: 'ee9faa6479c5b2434f9bceca8e2e7b643f699f4f3d067aac9609261e07c6be61',
     sha512: '793dc4357d311dba539c50b0ae38ff247af066f141ffea54ff0cc51e274453671e736989cee4998fd89211035ecfe52ad38aa828ba7f1739bcf107b94a023be5',
   },
+  [TWEMOJI_COLR_FILE_NAME]: {
+    size: 1454532,
+    md5: '586ab9cc40bf148778810a85312a5488',
+    sha1: 'f85f8dd7af424214e1a2f480837c8e1ce152d44c',
+    sha256: '61db6397b8b32b72c585d538ef698a84cf78cf2558a14046b3fa0ec4cc362540',
+    sha512: 'bcc08459e94b8d0d07cafeb75f4c6439b965fdc37ee18ef8fb5ba2cb7d9ae1230da192307187840789bcc645c1291b6a9d100e989b7e67ef973e5eb80ce8080c',
+  },
 }
 
 const FONT_DOWNLOAD_URLS: Record<string, { source: string; url: string }[]> = {
@@ -46,6 +55,10 @@ const FONT_DOWNLOAD_URLS: Record<string, { source: string; url: string }[]> = {
   [LXGW_WENKAI_FILE_NAME]: [
     { source: 'Gitee', url: `${GITEE_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}` },
     { source: 'GitHub', url: `${GITHUB_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}` },
+  ],
+  [TWEMOJI_COLR_FILE_NAME]: [
+    { source: 'Gitee', url: `${GITEE_RELEASE_BASE}/${TWEMOJI_COLR_FILE_NAME}` },
+    { source: 'GitHub', url: `${GITHUB_RELEASE_BASE}/${TWEMOJI_COLR_FILE_NAME}` },
   ],
 }
 
@@ -59,6 +72,10 @@ export function getSourceHanSerifPathByBaseDir(baseDir: string) {
 
 export function getLxgwWenKaiPathByBaseDir(baseDir: string) {
   return path.join(getFontDirByBaseDir(baseDir), LXGW_WENKAI_FILE_NAME)
+}
+
+export function getTwemojiColrPathByBaseDir(baseDir: string) {
+  return path.join(getFontDirByBaseDir(baseDir), TWEMOJI_COLR_FILE_NAME)
 }
 
 function calculateFontHashes(buffer: Buffer) {
@@ -94,10 +111,12 @@ function verifyFontBuffer(buffer: Buffer, expected: FontIntegrity): boolean {
 // 运行时必须优先使用 ctx.baseDir，见 resolveRuntimeFontPath()。
 export const DEFAULT_SOURCE_HAN_SERIF_PATH = getSourceHanSerifPathByBaseDir(process.cwd())
 export const DEFAULT_LXGW_WENKAI_PATH = getLxgwWenKaiPathByBaseDir(process.cwd())
+export const DEFAULT_TWEMOJI_COLR_PATH = getTwemojiColrPathByBaseDir(process.cwd())
 
 export function resolveRuntimeFontPath(ctx: Context, filePath: string): string {
   const sourceHanSerifPath = getSourceHanSerifPathByBaseDir(ctx.baseDir)
   const lxgwWenKaiPath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
+  const twemojiColrPath = getTwemojiColrPathByBaseDir(ctx.baseDir)
 
   if (!filePath) return sourceHanSerifPath
 
@@ -109,17 +128,23 @@ export function resolveRuntimeFontPath(ctx: Context, filePath: string): string {
     return lxgwWenKaiPath
   }
 
+  if (filePath === DEFAULT_TWEMOJI_COLR_PATH || filePath === twemojiColrPath) {
+    return twemojiColrPath
+  }
+
   return filePath
 }
 
-export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
+export async function checkAndDownloadFonts(ctx: Context, pluginName: string, includeEmojiFont = true) {
   const fontDir = getFontDirByBaseDir(ctx.baseDir)
   const sourceHanSerifPath = getSourceHanSerifPathByBaseDir(ctx.baseDir)
   const lxgwWenKaiPath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
+  const twemojiColrPath = getTwemojiColrPathByBaseDir(ctx.baseDir)
   const sourceHanSerifReady = await verifyFontIntegrity(sourceHanSerifPath, FONT_INTEGRITY[SOURCE_HAN_SERIF_FILE_NAME])
   const lxgwWenKaiReady = await verifyFontIntegrity(lxgwWenKaiPath, FONT_INTEGRITY[LXGW_WENKAI_FILE_NAME])
+  const twemojiColrReady = !includeEmojiFont || await verifyFontIntegrity(twemojiColrPath, FONT_INTEGRITY[TWEMOJI_COLR_FILE_NAME])
 
-  if (sourceHanSerifReady && lxgwWenKaiReady) {
+  if (sourceHanSerifReady && lxgwWenKaiReady && twemojiColrReady) {
     ctx.logger.info(`[${pluginName}] ✅ 字体文件已存在且 hash 校验通过，跳过下载`)
     return true
   }
@@ -158,6 +183,21 @@ export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
       lxgwWenKaiPath,
     ).then(() => true).catch((error) => {
       ctx.logger.error(`[${pluginName}] ❌ LXGWWenKaiMono-Regular.ttf 下载失败: ${error?.message || error}`)
+      return false
+    })
+    if (!ok) return false
+  }
+
+  if (!twemojiColrReady) {
+    if (existsSync(twemojiColrPath)) ctx.logger.warn(`[${pluginName}] ⚠️ TwemojiCOLRv0.ttf hash 校验失败，将重新下载`)
+    ctx.logger.info(`[${pluginName}] 📥 下载 TwemojiCOLRv0.ttf...`)
+    const ok = await downloadFont(
+      ctx,
+      pluginName,
+      TWEMOJI_COLR_URL,
+      twemojiColrPath,
+    ).then(() => true).catch((error) => {
+      ctx.logger.error(`[${pluginName}] ❌ TwemojiCOLRv0.ttf 下载失败: ${error?.message || error}`)
       return false
     })
     if (!ok) return false

@@ -2,7 +2,7 @@ import { Schema } from 'koishi'
 
 import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './type'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
-import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH } from './utils'
+import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './utils'
 
 export interface ImageStyleDetail {
 	/** 🖌️ 图片渲染样式 key */
@@ -44,6 +44,10 @@ export interface Config {
 	pageScreenshotQuality: number
 	/** ⏱️ 是否在图片后显示渲染耗时信息 */
 	showRenderInfo: boolean
+	/** 😀 是否使用插件从 release 下载的 emoji 字体 */
+	enableReleaseEmojiFont: boolean
+	/** 📁 emoji 字体文件路径 */
+	emojiFontPath: string
 
 	/** 💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮 */
 	enableQQMarkdown: boolean
@@ -113,7 +117,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.array(
 				Schema.object({
 					styleKey: Schema
-						.union(IMAGE_STYLE_KEY_ARR.map((key) => Schema.const(key).description(IMAGE_STYLES[key])))
+						.union(IMAGE_STYLE_KEY_ARR.map((key) => Schema.const(key).description(`🖌️ ${IMAGE_STYLES[key]}`)))
 						.role('radio')
 						.description('🖌️ 图片样式'),
 					fontPath: Schema
@@ -193,7 +197,18 @@ export const Config: Schema<Config> = Schema.intersect([
 		showRenderInfo: Schema
 			.boolean()
 			.default(false)
-			.description('⏱️ 发送图片时附渲染耗时信息<br><i>仅在消息末尾追加一行文字，不影响图片本身</i>')
+			.description('⏱️ 发送图片时附渲染耗时信息<br><i>仅在消息末尾追加一行文字，不影响图片本身</i>'),
+		enableReleaseEmojiFont: Schema
+			.boolean()
+			.experimental()
+			.default(false)
+			.description(' 是否使用插件从 Gitee/GitHub release 下载的 Twemoji 彩色 emoji 字体<br><i>开启：下载并校验 TwemojiCOLRv0.ttf 后注入渲染 CSS；关闭：不下载、不注入，使用系统 emoji 字体 fallback。</i> <br><i>⚠️ 实验性功能，可能不稳定；生产环境更建议关闭 enableReleaseEmojiFont，使用系统 emoji 字体。</i>'),
+		emojiFontPath: Schema
+			.string()
+			.experimental()
+			.role('textarea', { rows: [2, 5] })
+			.default(DEFAULT_TWEMOJI_COLR_PATH)
+			.description('📁 TwemojiCOLRv0.ttf 字体文件路径<br><i>默认展示 process.cwd()/data/fonts/TwemojiCOLRv0.ttf；运行时自动映射到 ctx.baseDir/data/fonts/TwemojiCOLRv0.ttf。</i>')
 	}).description('🖼️ 图片渲染配置'),
 
 	Schema.object({

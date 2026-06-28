@@ -76,17 +76,28 @@ export const usage = `
     <ul>
       <li><a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf">SourceHanSerifSC-SemiBold.otf</a></li>
       <li><a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf">LXGWWenKaiMono-Regular.ttf</a></li>
+      <li><a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/TwemojiCOLRv0.ttf">TwemojiCOLRv0.ttf</a></li>
     </ul>
   </li>
   <li>🔗 GitHub 下载地址（fallback）：
     <ul>
       <li><a href="https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf">SourceHanSerifSC-SemiBold.otf</a></li>
       <li><a href="https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf">LXGWWenKaiMono-Regular.ttf</a></li>
+      <li><a href="https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/TwemojiCOLRv0.ttf">TwemojiCOLRv0.ttf</a></li>
     </ul>
   </li>
   <li>📁 下载后请将字体文件放入 Koishi 运行目录的 <code>data/fonts</code> 文件夹中</li>
-  <li>📋 需要的字体文件：<code>SourceHanSerifSC-SemiBold.otf</code> 和 <code>LXGWWenKaiMono-Regular.ttf</code></li>
+  <li>📋 需要的字体文件：<code>SourceHanSerifSC-SemiBold.otf</code>、<code>LXGWWenKaiMono-Regular.ttf</code>，以及默认开启的 <code>TwemojiCOLRv0.ttf</code></li>
 </ul>
+
+<h3>🖥️ 使用系统 emoji 字体（Debian / Ubuntu 示例）</h3>
+<p>如果把 <code>enableReleaseEmojiFont</code> 设为 <code>false</code>，插件不会下载和注入 Twemoji 字体，会使用系统 emoji 字体 fallback。Debian / Ubuntu 可以这样安装：</p>
+<pre><code>apt update
+apt install -y fonts-noto-color-emoji fonts-noto-cjk fontconfig
+fc-cache -fv
+fc-match emoji
+fc-match "Noto Color Emoji"</code></pre>
+<p>然后重启 Koishi。</p>
 
 </details>
 

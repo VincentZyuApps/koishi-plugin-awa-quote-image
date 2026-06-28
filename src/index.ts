@@ -6,7 +6,7 @@ import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
 import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
-import { DEFAULT_SOURCE_HAN_SERIF_PATH, checkAndDownloadFonts, fileToBase64WithFallback, resolveRuntimeFontPath } from './utils';
+import { DEFAULT_SOURCE_HAN_SERIF_PATH, checkAndDownloadFonts, fileToBase64, fileToBase64WithFallback, resolveRuntimeFontPath } from './utils';
 import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData, registerQQQuoteCacheMiddleware, setupQQQuoteCacheDatabase } from './qq';
 
 export const inject = {
@@ -37,7 +37,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 	}
 	registerQQQuoteCacheMiddleware(ctx, config, qqQuoteCacheRuntime);
 
-	checkAndDownloadFonts(ctx, PLUGIN_NAME).catch((error) => {
+	checkAndDownloadFonts(ctx, PLUGIN_NAME, config.enableReleaseEmojiFont).catch((error) => {
 		ctx.logger.warn(`[${PLUGIN_NAME}] ⚠️ apply 阶段字体预检查失败，将在指令执行时重试: ${error?.message || error}`)
 	})
 
@@ -72,7 +72,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		.option("verbose", "-v, --verbose 在session和console打印详细参数信息")
 		.action(async ({ session, options }) => {
 			try {
-				const fontsReady = await checkAndDownloadFonts(ctx, PLUGIN_NAME);
+				const fontsReady = await checkAndDownloadFonts(ctx, PLUGIN_NAME, config.enableReleaseEmojiFont);
 				if (!fontsReady) {
 					const fontErrMsg = `❌ 字体文件下载或校验失败，已停止渲染。\n\n请确认 Koishi 可以访问 Gitee / GitHub release，或手动放置字体到 Koishi 运行目录的 data/fonts。`
 					ctx.logger.error(`[${PLUGIN_NAME}] ${fontErrMsg}`)
@@ -304,6 +304,10 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		const selectedFontPath = resolveRuntimeFontPath(ctx, selectedStyleDetailObj.fontPath);
 		const fontResult = await fileToBase64WithFallback(ctx, PLUGIN_NAME, selectedFontPath);
 		const font_base64 = fontResult.fontBase64;
+		const emojiFontPath = resolveRuntimeFontPath(ctx, config.emojiFontPath);
+		const emojiFontBase64 = config.enableReleaseEmojiFont
+			? await fileToBase64(ctx, PLUGIN_NAME, emojiFontPath)
+			: '';
 		if (fontResult.fallbackUsed) {
 			const fallbackMsg = `[${PLUGIN_NAME}] 字体读取失败，已 fallback 到默认字体: source=${selectedFontPath}, fallback=${fontResult.usedFontPath}, error=${fontResult.error}`;
 			if (config.verboseConsoleLog || options.verbose)
@@ -333,6 +337,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				sentence: quoteData.content, username: usernameArg, userId: quoteData.userId, avatarBase64: avatar_base64,
 				width: config.imageWidth, minHeight: config.imageMinHeight,
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
+				emojiFontBase64,
 				imageType: config.imageType, enablePageScreenshotQuality: config.pageScreenshotQuality,
 				showUserId: config.showUserId !== false, showTimestamp: config.showTimestamp !== false,
 				preserveNewlines: options.newlines !== false,
