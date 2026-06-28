@@ -37,6 +37,10 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 	}
 	registerQQQuoteCacheMiddleware(ctx, config, qqQuoteCacheRuntime);
 
+	checkAndDownloadFonts(ctx, PLUGIN_NAME).catch((error) => {
+		ctx.logger.warn(`[${PLUGIN_NAME}] ⚠️ apply 阶段字体预检查失败，将在指令执行时重试: ${error?.message || error}`)
+	})
+
 	// 立即注册 acs 指令
 	ctx.command(
 		config.acsCommandName,
@@ -56,7 +60,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			await session.send(msg);
 		});
 
-	// 立即注册 aqt 指令；字体在执行时检查，避免异步下载完成后才注册命令。
+	// 立即注册 aqt 指令；apply 阶段已预检查字体，执行时再复核一次。
 	ctx.command(
 		config.aqtCommandName + ' [text:text]',
 		"回复/引用某个群u说的话, 制作名人名言图片"
