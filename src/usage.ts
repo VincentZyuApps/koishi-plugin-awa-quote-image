@@ -69,9 +69,21 @@ export const usage = `
 <p>🆓 两者均为自由字体，可在本项目中自由使用、修改与发布。若你也在开发相关插件或项目，欢迎一同使用这些优秀的字体。✨</p>
 
 <h3>📥 字体文件获取说明</h3>
-<p>🤖 插件会在首次使用时自动下载所需字体文件。如果自动下载失败，请手动下载字体文件：</p>
+<p>🤖 插件会在 apply 阶段和执行 <code>aqt</code> 前检查字体文件，自动下载到 Koishi 运行目录的 <code>data/fonts</code> 文件夹中。</p>
+<p>下载顺序为 <b>Gitee release 优先</b>，失败后自动 fallback 到 <b>GitHub release</b>。下载完成后会校验 <code>size + md5 + sha1 + sha256 + sha512</code>，全部通过才会继续渲染；如果字体不可用，会直接报错并停止渲染。</p>
 <ul>
-  <li>🔗 字体下载地址：<a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts">https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts</a></li>
+  <li>🔗 Gitee 下载地址（优先）：
+    <ul>
+      <li><a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf">SourceHanSerifSC-SemiBold.otf</a></li>
+      <li><a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf">LXGWWenKaiMono-Regular.ttf</a></li>
+    </ul>
+  </li>
+  <li>🔗 GitHub 下载地址（fallback）：
+    <ul>
+      <li><a href="https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf">SourceHanSerifSC-SemiBold.otf</a></li>
+      <li><a href="https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf">LXGWWenKaiMono-Regular.ttf</a></li>
+    </ul>
+  </li>
   <li>📁 下载后请将字体文件放入 Koishi 运行目录的 <code>data/fonts</code> 文件夹中</li>
   <li>📋 需要的字体文件：<code>SourceHanSerifSC-SemiBold.otf</code> 和 <code>LXGWWenKaiMono-Regular.ttf</code></li>
 </ul>

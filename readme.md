@@ -33,8 +33,8 @@
 
 如果没有安装 `puppeteer` 和 `http`，本插件将无法工作。`database` 是可选服务；QQ 引用缓存默认使用 database 模式，未启用 database 时会自动退回内存缓存。
 
-### 字体手动下载链接：
-[https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts)
+### 字体下载说明
+插件会自动下载并校验字体，优先使用 Gitee release，失败后 fallback 到 GitHub release。手动下载直链见下方「📥 字体文件获取说明」。
 
 ---
 
@@ -182,16 +182,24 @@ aqt -v      # 显示详细信息 📊
 ## 📥 字体文件获取说明
 
 ### 🤖 自动下载
-插件会在首次使用时自动下载所需字体文件，无需手动操作！
+插件会在 apply 阶段和执行 `aqt` 前检查字体文件，自动下载到 Koishi 运行目录的 `data/fonts` 文件夹中。
+
+下载顺序为 **Gitee release 优先**，失败后自动 fallback 到 **GitHub release**。下载完成后会校验 `size + md5 + sha1 + sha256 + sha512`，全部通过才会继续渲染；如果字体不可用，会直接报错并停止渲染。
 
 ### 📁 手动下载（如果自动下载失败）
 如果自动下载失败，请按以下步骤手动下载字体文件：
 
-1. 🔗 **下载地址**：[https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/tag/fonts)
+1. 🔗 **Gitee 下载地址（优先）**
+   - [SourceHanSerifSC-SemiBold.otf](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf)
+   - [LXGWWenKaiMono-Regular.ttf](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf)
 
-2. 📂 **存放位置**：下载后请将字体文件放入 Koishi 运行目录的 `data/fonts` 文件夹中
+2. 🔗 **GitHub 下载地址（fallback）**
+   - [SourceHanSerifSC-SemiBold.otf](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf)
+   - [LXGWWenKaiMono-Regular.ttf](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf)
 
-3. 📋 **需要的字体文件**：
+3. 📂 **存放位置**：下载后请将字体文件放入 Koishi 运行目录的 `data/fonts` 文件夹中
+
+4. 📋 **需要的字体文件**：
    - `SourceHanSerifSC-SemiBold.otf` （思源宋体）📝
    - `LXGWWenKaiMono-Regular.ttf` （霞鹜文楷）✍️
 
@@ -205,4 +213,4 @@ aqt -v      # 显示详细信息 📊
 - 💬 使用前需要先回复或引用一条消息
 - ⏳ 渲染过程需要几秒钟，请耐心等待
 - 🖼️ 支持 PNG、JPEG、WEBP 多种输出格式
-- 🔤 首次使用时会自动下载字体文件，可能需要稍等片刻
+- 🔤 首次使用时会自动下载并校验字体文件，可能需要稍等片刻；字体不可用时会停止渲染并提示错误

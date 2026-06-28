@@ -7,8 +7,11 @@ import type { Context } from 'koishi'
 export const SOURCE_HAN_SERIF_FILE_NAME = 'SourceHanSerifSC-SemiBold.otf'
 export const LXGW_WENKAI_FILE_NAME = 'LXGWWenKaiMono-Regular.ttf'
 
-export const SOURCE_HAN_SERIF_URL = 'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/SourceHanSerifSC-SemiBold.otf'
-export const LXGW_WENKAI_URL = 'http://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts/LXGWWenKaiMono-Regular.ttf'
+const GITEE_RELEASE_BASE = 'https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image/releases/download/fonts'
+const GITHUB_RELEASE_BASE = 'https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image/releases/download/fonts'
+
+export const SOURCE_HAN_SERIF_URL = `${GITEE_RELEASE_BASE}/${SOURCE_HAN_SERIF_FILE_NAME}`
+export const LXGW_WENKAI_URL = `${GITEE_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}`
 
 interface FontIntegrity {
   size: number
@@ -35,6 +38,17 @@ const FONT_INTEGRITY: Record<string, FontIntegrity> = {
   },
 }
 
+const FONT_DOWNLOAD_URLS: Record<string, { source: string; url: string }[]> = {
+  [SOURCE_HAN_SERIF_FILE_NAME]: [
+    { source: 'Gitee', url: `${GITEE_RELEASE_BASE}/${SOURCE_HAN_SERIF_FILE_NAME}` },
+    { source: 'GitHub', url: `${GITHUB_RELEASE_BASE}/${SOURCE_HAN_SERIF_FILE_NAME}` },
+  ],
+  [LXGW_WENKAI_FILE_NAME]: [
+    { source: 'Gitee', url: `${GITEE_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}` },
+    { source: 'GitHub', url: `${GITHUB_RELEASE_BASE}/${LXGW_WENKAI_FILE_NAME}` },
+  ],
+}
+
 export function getFontDirByBaseDir(baseDir: string) {
   return path.join(baseDir, 'data', 'fonts')
 }
@@ -59,6 +73,15 @@ function calculateFontHashes(buffer: Buffer) {
 async function verifyFontIntegrity(filePath: string, expected: FontIntegrity): Promise<boolean> {
   if (!existsSync(filePath)) return false
   const buffer = await readFile(filePath)
+  if (buffer.length !== expected.size) return false
+  const hashes = calculateFontHashes(buffer)
+  return hashes.md5 === expected.md5
+    && hashes.sha1 === expected.sha1
+    && hashes.sha256 === expected.sha256
+    && hashes.sha512 === expected.sha512
+}
+
+function verifyFontBuffer(buffer: Buffer, expected: FontIntegrity): boolean {
   if (buffer.length !== expected.size) return false
   const hashes = calculateFontHashes(buffer)
   return hashes.md5 === expected.md5
@@ -110,59 +133,70 @@ export async function checkAndDownloadFonts(ctx: Context, pluginName: string) {
     return false
   }
 
-  const downloadPromises: Promise<void>[] = []
-
   if (!sourceHanSerifReady) {
     if (existsSync(sourceHanSerifPath)) ctx.logger.warn(`[${pluginName}] ⚠️ SourceHanSerifSC-SemiBold.otf hash 校验失败，将重新下载`)
     ctx.logger.info(`[${pluginName}] 📥 下载 SourceHanSerifSC-SemiBold.otf...`)
-    downloadPromises.push(downloadFont(
+    const ok = await downloadFont(
       ctx,
       pluginName,
       SOURCE_HAN_SERIF_URL,
       sourceHanSerifPath,
-    ))
+    ).then(() => true).catch((error) => {
+      ctx.logger.error(`[${pluginName}] ❌ SourceHanSerifSC-SemiBold.otf 下载失败: ${error?.message || error}`)
+      return false
+    })
+    if (!ok) return false
   }
 
   if (!lxgwWenKaiReady) {
     if (existsSync(lxgwWenKaiPath)) ctx.logger.warn(`[${pluginName}] ⚠️ LXGWWenKaiMono-Regular.ttf hash 校验失败，将重新下载`)
     ctx.logger.info(`[${pluginName}] 📥 下载 LXGWWenKaiMono-Regular.ttf...`)
-    downloadPromises.push(downloadFont(
+    const ok = await downloadFont(
       ctx,
       pluginName,
       LXGW_WENKAI_URL,
       lxgwWenKaiPath,
-    ))
+    ).then(() => true).catch((error) => {
+      ctx.logger.error(`[${pluginName}] ❌ LXGWWenKaiMono-Regular.ttf 下载失败: ${error?.message || error}`)
+      return false
+    })
+    if (!ok) return false
   }
 
-  try {
-    await Promise.all(downloadPromises)
-    ctx.logger.info(`[${pluginName}] ✅ 字体文件下载完成，hash 校验通过`)
-    return true
-  } catch (error) {
-    ctx.logger.error(`[${pluginName}] ❌ 字体文件下载失败: ${error}`)
-    return false
-  }
+  ctx.logger.info(`[${pluginName}] ✅ 字体文件下载完成，hash 校验通过`)
+  return true
 }
 
 export async function downloadFont(ctx: Context, pluginName: string, url: string, filePath: string): Promise<void> {
   const fileName = path.basename(filePath)
   const expected = FONT_INTEGRITY[fileName]
+  const candidates = FONT_DOWNLOAD_URLS[fileName] || [{ source: 'configured', url }]
+  let lastError: unknown = null
 
-  try {
-    ctx.logger.info(`[${pluginName}] 📥 开始下载字体文件: ${fileName}`)
-    const response = await ctx.http.get(url, {
-      responseType: 'arraybuffer',
-      timeout: 60000,
-    })
-    await writeFile(filePath, Buffer.from(response))
-    if (expected && !(await verifyFontIntegrity(filePath, expected))) {
-      throw new Error(`❌ 字体 hash 校验失败: ${fileName}`)
+  for (const candidate of candidates) {
+    try {
+      ctx.logger.info(`[${pluginName}] 📥 开始下载字体文件: ${fileName} (${candidate.source})`)
+      const response = await ctx.http.get(candidate.url, {
+        responseType: 'arraybuffer',
+        timeout: 60000,
+      })
+      const buffer = Buffer.from(response)
+      if (expected && !verifyFontBuffer(buffer, expected)) {
+        throw new Error(`字体 hash 校验失败: ${fileName}`)
+      }
+      await writeFile(filePath, buffer)
+      if (expected && !(await verifyFontIntegrity(filePath, expected))) {
+        throw new Error(`字体写入后 hash 校验失败: ${fileName}`)
+      }
+      ctx.logger.info(`[${pluginName}] ✅ 字体文件下载成功且 hash 校验通过: ${fileName} (${candidate.source})`)
+      return
+    } catch (error) {
+      lastError = error
+      ctx.logger.warn(`[${pluginName}] ⚠️ ${candidate.source} 下载字体失败 ${fileName}: ${error?.message || error}`)
     }
-    ctx.logger.info(`[${pluginName}] ✅ 字体文件下载成功且 hash 校验通过: ${fileName}`)
-  } catch (error) {
-    ctx.logger.error(`[${pluginName}] ❌ 字体文件下载失败 ${fileName}: ${error}`)
-    throw error
   }
+
+  throw new Error(`字体文件下载失败 ${fileName}，Gitee / GitHub 均不可用或校验失败: ${lastError instanceof Error ? lastError.message : lastError}`)
 }
 
 export async function fileToBase64(ctx: Context, pluginName: string, filePath: string): Promise<string> {
@@ -192,6 +226,10 @@ export async function fileToBase64WithFallback(
       fallbackUsed: false,
     }
   } catch (error) {
+    const fallbackReady = await verifyFontIntegrity(fallbackFontPath, FONT_INTEGRITY[SOURCE_HAN_SERIF_FILE_NAME])
+    if (!fallbackReady) {
+      throw new Error(`默认字体不可用，无法 fallback: source=${runtimeFontPath}, fallback=${fallbackFontPath}, error=${error instanceof Error ? error.message : error}`)
+    }
     return {
       fontBase64: await fileToBase64(ctx, pluginName, fallbackFontPath),
       usedFontPath: fallbackFontPath,

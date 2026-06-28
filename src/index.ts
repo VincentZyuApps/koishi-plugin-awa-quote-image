@@ -74,7 +74,10 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			try {
 				const fontsReady = await checkAndDownloadFonts(ctx, PLUGIN_NAME);
 				if (!fontsReady) {
-					ctx.logger.error(`[${PLUGIN_NAME}] 字体下载失败，将尝试使用已有字体或默认字体继续渲染`);
+					const fontErrMsg = `❌ 字体文件下载或校验失败，已停止渲染。\n\n请确认 Koishi 可以访问 Gitee / GitHub release，或手动放置字体到 Koishi 运行目录的 data/fonts。`
+					ctx.logger.error(`[${PLUGIN_NAME}] ${fontErrMsg}`)
+					await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}${fontErrMsg}`)
+					return
 				}
 
 				await do_aqt({ session, options });
