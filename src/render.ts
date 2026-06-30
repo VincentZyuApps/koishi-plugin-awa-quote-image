@@ -275,10 +275,10 @@ export async function renderQuoteImage(
         // writeFileSync(path.join(__dirname, 'tmp.html'), html);
 
         browserPage.on('console', msg => {
-            ctx.logger.debug(`Puppeteer console: ${msg.text()}`);
+            ctx.logger.debug(`🔍 Puppeteer console: ${msg.text()}`);
         });
         browserPage.on('pageerror', error => {
-            ctx.logger.error(`Puppeteer page error: ${error.message}`);
+            ctx.logger.error(`❌ Puppeteer page error: ${error.message}`);
         });
 
         await browserPage.setContent(html);
@@ -309,7 +309,7 @@ export async function renderQuoteImage(
         });
         return res;
     } catch (err) {
-        ctx.logger.error(`error: ${err}`);
+        ctx.logger.error(`❌ 渲染图片失败: ${err}`);
     } finally {
         await browserPage.close();
     }

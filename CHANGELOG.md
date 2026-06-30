@@ -1,5 +1,87 @@
 # 更新日志
 
+## 0.2.10-rc.3+20260630
+
+### 🔧 改进
+
+- 📦 package.json 版本升级到 `0.2.10-rc.3+20260630`
+- 🧹 `src/config.ts` 配置接口重构：JSDoc 块注释改为行内注释，字段按功能分组（基础/会话/渲染/QQ Bot/调试）
+- 🧹 清理所有 logger 输出中的 `[${PLUGIN_NAME}]` / `[awa-quote-image]` 插件名前缀
+- ✨ 所有源码 logger 输出统一改为 emoji 开头，方便在 Koishi 控制台快速定位日志类型
+- 🔍 verbose 调试日志保留详细上下文，但 console 输出不再混入插件名前缀
+
+### 🐛 修复
+
+- 🔧 修复 `imageStyleDetails` 第 4 项（QQ 气泡样式）默认字体被错误配置为思源字体的问题，改为文楷字体
+- 🖼️ 修复 Puppeteer 渲染错误日志缺少明确错误前缀的问题
+- 📁 修复字体 base64 读取失败日志格式不统一的问题
+
+---
+
+## 0.2.10-rc.1+20260628
+
+### 🔧 改进
+
+- 📦 package.json 版本从 `0.2.10-beta.1+20260628` 升级到 `0.2.10-rc.1+20260628`
+- 🧹 清理运行时 logger 文案，去掉 `[awa-quote-image]` / `[${PLUGIN_NAME}]` / `[${pluginName}]` 这类插件名前缀
+- ✨ 所有源码 logger 输出统一改为 emoji 开头，方便在 Koishi 控制台快速定位日志类型
+- 🔍 verbose 调试日志保留详细上下文，但 console 输出不再混入插件名前缀
+
+### 🐛 修复
+
+- 🖼️ 修复 Puppeteer 渲染日志缺少明确错误前缀的问题
+- 📁 修复字体 base64 读取失败日志格式不统一的问题
+
+---
+
+## 0.2.10-beta.1+20260628
+
+### ✨ 新功能
+
+- 😀 新增 `TwemojiCOLRv0.ttf` release 字体支持，默认随插件启动自动检查、下载并校验
+- ⚙️ 新增 `enableReleaseEmojiFont` 配置项，允许关闭插件内置 Twemoji 注入并改用系统 emoji 字体 fallback
+- 📁 新增 `emojiFontPath` 配置项，默认展示 `process.cwd()/data/fonts/TwemojiCOLRv0.ttf`，运行时映射到 `ctx.baseDir/data/fonts/TwemojiCOLRv0.ttf`
+
+### 🔧 改进
+
+- 🧪 emoji 字体相关配置标记为实验性，并在配置说明里提示生产环境更建议使用系统 emoji 字体
+- 📚 README / usage 补充 Twemoji 下载地址，以及 Debian / Ubuntu 安装系统 emoji 字体的示例命令
+- 🧾 README 补充 Gitee / GitHub release 手动下载说明
+
+### 🐛 修复
+
+- 🎨 为 `TwemojiCOLR` 字体注入增加 `unicode-range`，限制它只接管 emoji 码位
+- 🔢 修复开启 release emoji 字体后，数字、`userId`、时间戳等普通字符可能被 Twemoji 字体吞掉的问题
+
+---
+
+## 0.2.9-rc.1+20260628
+
+### ✨ 新功能
+
+- 🌐 字体下载新增 GitHub release fallback：优先 Gitee，失败后自动尝试 GitHub
+- 🧩 默认字体下载逻辑统一放入 `src/utils.ts`
+
+### 🔧 改进
+
+- 📦 package.json 版本升级到 `0.2.9-rc.1+20260628`
+- 🚀 `apply()` 阶段预检查字体，指令执行前再次复核，避免渲染时才发现字体缺失
+- 🛑 字体下载或校验失败时停止渲染，并提示检查 Gitee / GitHub release 访问能力或手动放置字体
+- 📚 README / usage 同步更新自动下载、fallback 和手动下载说明
+
+---
+
+## 0.2.8-beta.15+20260628
+
+### 🔐 完整性校验
+
+- ✅ 为 `SourceHanSerifSC-SemiBold.otf` 和 `LXGWWenKaiMono-Regular.ttf` 增加 size、md5、sha1、sha256、sha512 校验
+- 📥 下载后必须立刻通过完整性校验，全部通过才视为下载成功
+- 🔁 默认字体存在但校验失败时自动重新下载
+- 📂 默认字体运行时统一读取 Koishi 运行目录的 `data/fonts`
+
+---
+
 ## 0.2.7-beta.13+20260628
 
 ### ✨ 新功能

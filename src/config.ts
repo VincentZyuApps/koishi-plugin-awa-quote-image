@@ -5,69 +5,48 @@ import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
 import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './utils'
 
 export interface ImageStyleDetail {
-	/** 🖌️ 图片渲染样式 key */
-	styleKey: ImageStyleKey
-	/** 📁 字体文件路径 */
-	fontPath: string
-	/** 🌙 是否启用深色模式 */
-	darkMode: boolean
+	styleKey: ImageStyleKey // 🖌️ 图片渲染样式 key
+	fontPath: string // 📁 字体文件路径
+	darkMode: boolean // 🌙 是否启用深色模式
 }
 
 export interface Config {
-	/** 📋 acs 指令名称 —— 查看图片样式列表 */
-	acsCommandName: string
-	/** 🎨 aqt 指令名称 —— 制作名人名言图片 */
-	aqtCommandName: string
+	// ===== 📌 基础配置 =====
+	acsCommandName: string // 📋 acs 指令名称 —— 查看图片样式列表
+	aqtCommandName: string // 🎨 aqt 指令名称 —— 制作名人名言图片
 
-	/** 💬 是否引用触发指令的消息 */
-	enableQuote: boolean
-	/** 🎭 Onebot 平台用户名显示样式 */
-	onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name'
-	/** 🆔 是否在图片中显示用户 ID */
-	showUserId: boolean
-	/** 🕐 是否在图片中显示时间戳 */
-	showTimestamp: boolean
-	/** ⏳ 是否显示「渲染中，请等待...」提示 */
-	enableWatingHint: boolean
-	/** 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）*/
-	showGroupTitleInQqBubble: boolean
+	// ===== 💬 会话设置 =====
+	enableQuote: boolean // 💬 是否引用触发指令的消息
+	onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name' // 🎭 Onebot 平台用户名显示样式
+	showUserId: boolean // 🆔 是否在图片中显示用户 ID
+	showTimestamp: boolean // 🕐 是否在图片中显示时间戳
+	enableWatingHint: boolean // ⏳ 是否显示「渲染中，请等待...」提示
+	showGroupTitleInQqBubble: boolean // 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）
 
-	/** 🖼️ 图片样式细节列表（table 配置） */
-	imageStyleDetails: ImageStyleDetail[]
-	/** 📐 渲染图片宽度 */
-	imageWidth: number
-	/** 📏 渲染图片最小高度 */
-	imageMinHeight: number
-	/** 📤 输出图片类型 */
-	imageType: ImageType
-	/** 🎚️ 截图质量参数 */
-	pageScreenshotQuality: number
-	/** ⏱️ 是否在图片后显示渲染耗时信息 */
-	showRenderInfo: boolean
-	/** 😀 是否使用插件从 release 下载的 emoji 字体 */
-	enableReleaseEmojiFont: boolean
-	/** 📁 emoji 字体文件路径 */
-	emojiFontPath: string
+	// ===== 🖼️ 图片渲染配置 =====
+	imageStyleDetails: ImageStyleDetail[] // 🖼️ 图片样式细节列表（table 配置）
+	imageWidth: number // 📐 渲染图片宽度
+	imageMinHeight: number // 📏 渲染图片最小高度
+	imageType: ImageType // 📤 输出图片类型
+	pageScreenshotQuality: number // 🎚️ 截图质量参数
+	showRenderInfo: boolean // ⏱️ 是否在图片后显示渲染耗时信息
+	enableReleaseEmojiFont: boolean // 😀 是否使用插件从 release 下载的 emoji 字体
+	emojiFontPath: string // 📁 emoji 字体文件路径
 
-	/** 💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮 */
-	enableQQMarkdown: boolean
-	/** 📋 QQ Markdown 按钮 JSON 配置 */
-	qqMarkdownKeyboardJson: string
-	/** 🧠 QQ 引用消息缓存模式 */
-	qqQuoteCacheMode: 'database' | 'memory'
+	// ===== 🤖 QQ 官方 Bot 平台设置 =====
+	enableQQMarkdown: boolean // 💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮
+	qqMarkdownKeyboardJson: string // 📋 QQ Markdown 按钮 JSON 配置
+	qqQuoteCacheMode: 'database' | 'memory' // 🧠 QQ 引用消息缓存模式
+	qqBotAppId: string // 🤖 QQ 官方 Bot 的 AppId（用于 qqapp 头像地址，如 102800160）
+	botUid?: string // @deprecated 旧配置里可能存在的 Bot QQ 号，用于 Bot 自身头像
 
-	/** 🤖 QQ 官方 Bot 的 AppId（用于 qqapp 头像地址，如 102800160） */
-	qqBotAppId: string
-	/** @deprecated 旧配置里可能存在的 Bot QQ 号，用于 Bot 自身头像 */
-	botUid?: string
-
-	/** 🐛 是否在会话中输出调试信息 */
-	verboseSessionLog: boolean
-	/** 🐛 是否在控制台输出调试信息 */
-	verboseConsoleLog: boolean
+	// ===== 🐛 调试设置 =====
+	verboseSessionLog: boolean // 🐛 是否在会话中输出调试信息
+	verboseConsoleLog: boolean // 🐛 是否在控制台输出调试信息
 }
 
 export const Config: Schema<Config> = Schema.intersect([
+	// ===== 📌 基础配置 =====
 	Schema.object({
 		acsCommandName: Schema
 			.string()
@@ -79,6 +58,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.description('🎨 aqt 指令名称 —— 制作名人名言图片'),
 	}).description('📌 基础配置 ⚙️'),
 
+	// ===== 💬 会话设置 =====
 	Schema.object({
 		enableQuote: Schema
 			.boolean()
@@ -112,6 +92,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.description('🏷️ 是否在QQ 气泡样式中显示群头衔和群等级（仅OneBot平台 且 使用QQ气泡样式时生效）'),
 	}).description('💬 会话设置 ⚙️'),
 
+	// ===== 🖼️ 图片渲染配置 =====
 	Schema.object({
 		imageStyleDetails: Schema
 			.array(
@@ -162,12 +143,12 @@ export const Config: Schema<Config> = Schema.intersect([
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[3],
-					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
+					fontPath: DEFAULT_LXGW_WENKAI_PATH,
 					darkMode: false,
 				},
 				{
 					styleKey: IMAGE_STYLE_KEY_ARR[3],
-					fontPath: DEFAULT_SOURCE_HAN_SERIF_PATH,
+					fontPath: DEFAULT_LXGW_WENKAI_PATH,
 					darkMode: true,
 				},
 			])
@@ -211,6 +192,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.description('📁 TwemojiCOLRv0.ttf 字体文件路径<br><i>默认展示 process.cwd()/data/fonts/TwemojiCOLRv0.ttf；运行时自动映射到 ctx.baseDir/data/fonts/TwemojiCOLRv0.ttf。</i>')
 	}).description('🖼️ 图片渲染配置'),
 
+	// ===== 🤖 QQ 官方 Bot 平台设置 =====
 	Schema.object({
 		enableQQMarkdown: Schema
 			.boolean()
@@ -235,6 +217,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.description('🤖 QQ 官方 Bot 的 AppId（用于拼接 qqapp 头像地址）<br><i>留空则自动从 bot.config.id 获取</i>'),
 	}).description('🤖 QQ 官方 Bot 平台设置'),
 
+	// ===== 🐛 调试设置 =====
 	Schema.object({
 		verboseSessionLog: Schema
 			.boolean()

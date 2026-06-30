@@ -145,65 +145,65 @@ export async function checkAndDownloadFonts(ctx: Context, pluginName: string, in
   const twemojiColrReady = !includeEmojiFont || await verifyFontIntegrity(twemojiColrPath, FONT_INTEGRITY[TWEMOJI_COLR_FILE_NAME])
 
   if (sourceHanSerifReady && lxgwWenKaiReady && twemojiColrReady) {
-    ctx.logger.info(`[${pluginName}] ✅ 字体文件已存在且 hash 校验通过，跳过下载`)
+    ctx.logger.info(`✅ 字体文件已存在且 hash 校验通过，跳过下载`)
     return true
   }
 
-  ctx.logger.info(`[${pluginName}] 📥 开始下载字体文件...`)
+  ctx.logger.info(`📥 开始下载字体文件...`)
 
   try {
     await mkdir(fontDir, { recursive: true })
   } catch (error) {
-    ctx.logger.error(`[${pluginName}] ❌ 创建字体目录失败: ${error}`)
+    ctx.logger.error(`❌ 创建字体目录失败: ${error}`)
     return false
   }
 
   if (!sourceHanSerifReady) {
-    if (existsSync(sourceHanSerifPath)) ctx.logger.warn(`[${pluginName}] ⚠️ SourceHanSerifSC-SemiBold.otf hash 校验失败，将重新下载`)
-    ctx.logger.info(`[${pluginName}] 📥 下载 SourceHanSerifSC-SemiBold.otf...`)
+    if (existsSync(sourceHanSerifPath)) ctx.logger.warn(`⚠️ SourceHanSerifSC-SemiBold.otf hash 校验失败，将重新下载`)
+    ctx.logger.info(`📥 下载 SourceHanSerifSC-SemiBold.otf...`)
     const ok = await downloadFont(
       ctx,
       pluginName,
       SOURCE_HAN_SERIF_URL,
       sourceHanSerifPath,
     ).then(() => true).catch((error) => {
-      ctx.logger.error(`[${pluginName}] ❌ SourceHanSerifSC-SemiBold.otf 下载失败: ${error?.message || error}`)
+      ctx.logger.error(`❌ SourceHanSerifSC-SemiBold.otf 下载失败: ${error?.message || error}`)
       return false
     })
     if (!ok) return false
   }
 
   if (!lxgwWenKaiReady) {
-    if (existsSync(lxgwWenKaiPath)) ctx.logger.warn(`[${pluginName}] ⚠️ LXGWWenKaiMono-Regular.ttf hash 校验失败，将重新下载`)
-    ctx.logger.info(`[${pluginName}] 📥 下载 LXGWWenKaiMono-Regular.ttf...`)
+    if (existsSync(lxgwWenKaiPath)) ctx.logger.warn(`⚠️ LXGWWenKaiMono-Regular.ttf hash 校验失败，将重新下载`)
+    ctx.logger.info(`📥 下载 LXGWWenKaiMono-Regular.ttf...`)
     const ok = await downloadFont(
       ctx,
       pluginName,
       LXGW_WENKAI_URL,
       lxgwWenKaiPath,
     ).then(() => true).catch((error) => {
-      ctx.logger.error(`[${pluginName}] ❌ LXGWWenKaiMono-Regular.ttf 下载失败: ${error?.message || error}`)
+      ctx.logger.error(`❌ LXGWWenKaiMono-Regular.ttf 下载失败: ${error?.message || error}`)
       return false
     })
     if (!ok) return false
   }
 
   if (!twemojiColrReady) {
-    if (existsSync(twemojiColrPath)) ctx.logger.warn(`[${pluginName}] ⚠️ TwemojiCOLRv0.ttf hash 校验失败，将重新下载`)
-    ctx.logger.info(`[${pluginName}] 📥 下载 TwemojiCOLRv0.ttf...`)
+    if (existsSync(twemojiColrPath)) ctx.logger.warn(`⚠️ TwemojiCOLRv0.ttf hash 校验失败，将重新下载`)
+    ctx.logger.info(`📥 下载 TwemojiCOLRv0.ttf...`)
     const ok = await downloadFont(
       ctx,
       pluginName,
       TWEMOJI_COLR_URL,
       twemojiColrPath,
     ).then(() => true).catch((error) => {
-      ctx.logger.error(`[${pluginName}] ❌ TwemojiCOLRv0.ttf 下载失败: ${error?.message || error}`)
+      ctx.logger.error(`❌ TwemojiCOLRv0.ttf 下载失败: ${error?.message || error}`)
       return false
     })
     if (!ok) return false
   }
 
-  ctx.logger.info(`[${pluginName}] ✅ 字体文件下载完成，hash 校验通过`)
+  ctx.logger.info(`✅ 字体文件下载完成，hash 校验通过`)
   return true
 }
 
@@ -215,7 +215,7 @@ export async function downloadFont(ctx: Context, pluginName: string, url: string
 
   for (const candidate of candidates) {
     try {
-      ctx.logger.info(`[${pluginName}] 📥 开始下载字体文件: ${fileName} (${candidate.source})`)
+      ctx.logger.info(`📥 开始下载字体文件: ${fileName} (${candidate.source})`)
       const response = await ctx.http.get(candidate.url, {
         responseType: 'arraybuffer',
         timeout: 60000,
@@ -228,11 +228,11 @@ export async function downloadFont(ctx: Context, pluginName: string, url: string
       if (expected && !(await verifyFontIntegrity(filePath, expected))) {
         throw new Error(`字体写入后 hash 校验失败: ${fileName}`)
       }
-      ctx.logger.info(`[${pluginName}] ✅ 字体文件下载成功且 hash 校验通过: ${fileName} (${candidate.source})`)
+      ctx.logger.info(`✅ 字体文件下载成功且 hash 校验通过: ${fileName} (${candidate.source})`)
       return
     } catch (error) {
       lastError = error
-      ctx.logger.warn(`[${pluginName}] ⚠️ ${candidate.source} 下载字体失败 ${fileName}: ${error?.message || error}`)
+      ctx.logger.warn(`⚠️ ${candidate.source} 下载字体失败 ${fileName}: ${error?.message || error}`)
     }
   }
 
@@ -246,7 +246,7 @@ export async function fileToBase64(ctx: Context, pluginName: string, filePath: s
     const buffer = await readFile(absolutePath)
     return buffer.toString('base64')
   } catch (error) {
-    ctx.logger.error(`[${pluginName}]文件转换成base64失败: ${error.message}`)
+    ctx.logger.error(`❌ 文件转换成 base64 失败: ${error.message}`)
     throw error
   }
 }

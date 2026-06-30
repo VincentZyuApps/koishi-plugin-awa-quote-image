@@ -241,7 +241,7 @@ export function registerQQQuoteCacheMiddleware(ctx: Context, config: Config, run
     if (cached && config.verboseConsoleLog) {
       const d = getQQRawEvent(session)
       const { msgIdx } = parseQQMessageIndices(d)
-      ctx.logger.info(`[awa-quote-image] QQ 引用缓存写入: messageId=${d?.id || session.messageId || '(empty)'}, msgIdx=${msgIdx}, userId=${resolveQQAuthorId(d)}, username=${resolveQQAuthorName(d)}`)
+      ctx.logger.info(`💾 QQ 引用缓存写入: messageId=${d?.id || session.messageId || '(empty)'}, msgIdx=${msgIdx}, userId=${resolveQQAuthorId(d)}, username=${resolveQQAuthorName(d)}`)
     }
     const databaseCtx = getDatabaseContext(config, runtime)
     if (cached && databaseCtx) {
@@ -257,7 +257,7 @@ export function registerQQQuoteCacheMiddleware(ctx: Context, config: Config, run
           resolveQQAuthorName(d),
         )
       } catch (error: any) {
-        ctx.logger.warn(`[awa-quote-image] QQ 引用缓存写入 database 失败，已保留内存缓存: ${error?.message || error}`)
+        ctx.logger.warn(`⚠️ QQ 引用缓存写入 database 失败，已保留内存缓存: ${error?.message || error}`)
       }
     }
     return next()
@@ -320,7 +320,7 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
   const bot = session.bot as any
   const qqBotAppId = config.qqBotAppId || bot.config?.id || ''
   const qqBotAppIdSource = config.qqBotAppId ? 'config.qqBotAppId' : 'bot.config.id'
-  const botAppIdMsg = `[awa-quote-image] QQ 官方 Bot 头像 AppId 来源: ${qqBotAppIdSource}, value: ${qqBotAppId || '(空)'}`
+  const botAppIdMsg = `🤖 QQ 官方 Bot 头像 AppId 来源: ${qqBotAppIdSource}, value: ${qqBotAppId || '(空)'}`
 
   if (config.verboseConsoleLog || options?.verbose) ctx.logger.info(botAppIdMsg)
   if (config.verboseSessionLog || options?.verbose) await session.send(botAppIdMsg)
@@ -339,7 +339,7 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
     const curUsername = resolveQQAuthorName(d)
     if (!curUserId || !curUsername) {
       if (config.verboseConsoleLog || options?.verbose) {
-        ctx.logger.warn(`[awa-quote-image] QQ 当前消息缺少 author，跳过引用缓存: msgIdx=${msgIdx}, userId=${curUserId || '(empty)'}, username=${curUsername || '(empty)'}`)
+        ctx.logger.warn(`⚠️ QQ 当前消息缺少 author，跳过引用缓存: msgIdx=${msgIdx}, userId=${curUserId || '(empty)'}, username=${curUsername || '(empty)'}`)
       }
     } else {
       msgCache.set(msgIdx, {
@@ -365,11 +365,11 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
   }
 
   if (config.verboseConsoleLog || options?.verbose) {
-    ctx.logger.info(`[awa-quote-image] QQ 引用解析快照: ${JSON.stringify(getQQDebugSnapshot(session, d))}`)
-    ctx.logger.info(`[awa-quote-image] QQ 引用候选 message_id: ${quoteMessageIds.length ? quoteMessageIds.join(', ') : '(empty)'}`)
-    ctx.logger.info(`[awa-quote-image] QQ msgCache 样本: ${JSON.stringify(sampleMsgCacheEntries())}`)
-    ctx.logger.info(`[awa-quote-image] QQ refIdxToMsgIdCache 样本: ${JSON.stringify(sampleMapEntries(refIdxToMsgIdCache))}`)
-    ctx.logger.info(`[awa-quote-image] QQ msgIdToRefIdxCache 样本: ${JSON.stringify(sampleMapEntries(msgIdToRefIdxCache))}`)
+    ctx.logger.info(`🔍 QQ 引用解析快照: ${JSON.stringify(getQQDebugSnapshot(session, d))}`)
+    ctx.logger.info(`🔍 QQ 引用候选 message_id: ${quoteMessageIds.length ? quoteMessageIds.join(', ') : '(empty)'}`)
+    ctx.logger.info(`🔍 QQ msgCache 样本: ${JSON.stringify(sampleMsgCacheEntries())}`)
+    ctx.logger.info(`🔍 QQ refIdxToMsgIdCache 样本: ${JSON.stringify(sampleMapEntries(refIdxToMsgIdCache))}`)
+    ctx.logger.info(`🔍 QQ msgIdToRefIdxCache 样本: ${JSON.stringify(sampleMapEntries(msgIdToRefIdxCache))}`)
   }
 
   for (const quoteMessageId of quoteMessageIds) {
@@ -378,7 +378,7 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
       const response = await bot.internal.getMessage(guildId, quoteMessageId)
       const data = buildQQQuoteDataFromRawMessage(response?.message, avatarUrl, config, qqBotAppId, guildId)
       if (config.verboseConsoleLog || options?.verbose) {
-        ctx.logger.info(`[awa-quote-image] QQ getMessage 返回摘要: quoteMessageId=${quoteMessageId}, raw=${JSON.stringify({
+        ctx.logger.info(`🔍 QQ getMessage 返回摘要: quoteMessageId=${quoteMessageId}, raw=${JSON.stringify({
           id: response?.message?.id,
           author: response?.message?.author,
           hasContent: !!response?.message?.content,
@@ -388,13 +388,13 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
       }
       if (data) {
         if (config.verboseConsoleLog || options?.verbose) {
-          ctx.logger.info(`[awa-quote-image] QQ 通过 bot.internal.getMessage 获取被引用消息: quoteMessageId=${quoteMessageId}, userId=${data.userId}, username=${data.username}`)
+          ctx.logger.info(`✅ QQ 通过 bot.internal.getMessage 获取被引用消息: quoteMessageId=${quoteMessageId}, userId=${data.userId}, username=${data.username}`)
         }
         return data
       }
     } catch (error: any) {
       if (config.verboseConsoleLog || options?.verbose) {
-        ctx.logger.warn(`[awa-quote-image] QQ bot.internal.getMessage 获取引用消息失败: quoteMessageId=${quoteMessageId}, error=${error?.message || error}`)
+        ctx.logger.warn(`⚠️ QQ bot.internal.getMessage 获取引用消息失败: quoteMessageId=${quoteMessageId}, error=${error?.message || error}`)
       }
     }
   }
@@ -402,7 +402,7 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
   const sessionQuoteData = buildQQQuoteDataFromSessionQuote(session, avatarUrl, guildId)
   if (sessionQuoteData) {
     if (config.verboseConsoleLog || options?.verbose) {
-      ctx.logger.info(`[awa-quote-image] QQ 从 session.quote 获取被引用消息: userId=${sessionQuoteData.userId}, username=${sessionQuoteData.username}`)
+      ctx.logger.info(`✅ QQ 从 session.quote 获取被引用消息: userId=${sessionQuoteData.userId}, username=${sessionQuoteData.username}`)
     }
     return sessionQuoteData
   }
@@ -412,7 +412,7 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
     const cached = msgCache.get(refMsgIdx)
     if (cached) {
       if (config.verboseConsoleLog || options?.verbose) {
-        ctx.logger.info(`[awa-quote-image] QQ 命中 msgCache: refMsgIdx=${refMsgIdx}, userId=${cached.userId}, username=${cached.username}`)
+        ctx.logger.info(`✅ QQ 命中 msgCache: refMsgIdx=${refMsgIdx}, userId=${cached.userId}, username=${cached.username}`)
       }
       return validateCompleteQQQuoteData({
         content: cached.content,
@@ -427,7 +427,7 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
       const dbCached = await getQQQuoteCacheFromDatabase(databaseCtx, refMsgIdx)
       if (dbCached) {
         if (config.verboseConsoleLog || options?.verbose) {
-          ctx.logger.info(`[awa-quote-image] QQ 命中 database cache: refMsgIdx=${refMsgIdx}, userId=${dbCached.userId}, username=${dbCached.username}`)
+          ctx.logger.info(`✅ QQ 命中 database cache: refMsgIdx=${refMsgIdx}, userId=${dbCached.userId}, username=${dbCached.username}`)
         }
         return validateCompleteQQQuoteData({
           content: dbCached.content,
@@ -449,19 +449,19 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
       const quotedBotData = buildQuotedBotData(ref.author, quotedContent, config, qqBotAppId, guildId)
       if (quotedBotData) {
         if (config.verboseConsoleLog || options?.verbose) {
-          ctx.logger.info(`[awa-quote-image] QQ 引用作者是 Bot，使用 Bot QQ 号/AppId 生成被引用 Bot 头像: refMsgIdx=${refMsgIdx}, botAvatarId=${config.botUid || qqBotAppId}, username=${quotedBotData.username}`)
+          ctx.logger.info(`🤖 QQ 引用作者是 Bot，使用 Bot QQ 号/AppId 生成被引用 Bot 头像: refMsgIdx=${refMsgIdx}, botAvatarId=${config.botUid || qqBotAppId}, username=${quotedBotData.username}`)
         }
         return quotedBotData
       }
 
       if (!quotedUserId || !quotedUsername) {
-        const errMsg = `[awa-quote-image] QQ 引用消息缺少完整的被引用人 author 信息，已停止渲染，不会使用触发 aqt 的用户信息: refMsgIdx=${refMsgIdx}, quotedUserId=${quotedUserId || '(empty)'}, quotedUsername=${quotedUsername || '(empty)'}, quotedAuthorIsBot=${!!ref.author?.bot}, qqBotAppId=${qqBotAppId || '(empty)'}, botUid=${config.botUid || '(empty)'}`
+        const errMsg = `❌ QQ 引用消息缺少完整的被引用人 author 信息，已停止渲染，不会使用触发 aqt 的用户信息: refMsgIdx=${refMsgIdx}, quotedUserId=${quotedUserId || '(empty)'}, quotedUsername=${quotedUsername || '(empty)'}, quotedAuthorIsBot=${!!ref.author?.bot}, qqBotAppId=${qqBotAppId || '(empty)'}, botUid=${config.botUid || '(empty)'}`
         ctx.logger.error(errMsg)
         return null
       }
 
       if (config.verboseConsoleLog || options?.verbose) {
-        ctx.logger.info(`[awa-quote-image] QQ 引用缓存未命中，从 msg_elements[0].author 获取被引用人: refMsgIdx=${refMsgIdx}, quotedUserId=${quotedUserId || '(empty)'}, quotedUsername=${quotedUsername || '(empty)'}`)
+        ctx.logger.info(`✅ QQ 引用缓存未命中，从 msg_elements[0].author 获取被引用人: refMsgIdx=${refMsgIdx}, quotedUserId=${quotedUserId || '(empty)'}, quotedUsername=${quotedUsername || '(empty)'}`)
       }
 
       return validateCompleteQQQuoteData({
@@ -474,10 +474,10 @@ export async function resolveQQData(session: Session, options: any, ctx: Context
     }
   }
 
-  const finalErrMsg = `[awa-quote-image] QQ 引用解析失败：没有任何路径拿到完整的被引用消息作者信息（content/userId/username/avatar），已停止渲染。`
+  const finalErrMsg = `❌ QQ 引用解析失败：没有任何路径拿到完整的被引用消息作者信息（content/userId/username/avatar），已停止渲染。`
   ctx.logger.error(finalErrMsg)
   if (config.verboseConsoleLog || options?.verbose) {
-    ctx.logger.error(`[awa-quote-image] QQ 引用解析失败快照: ${JSON.stringify(getQQDebugSnapshot(session, d))}`)
+    ctx.logger.error(`❌ QQ 引用解析失败快照: ${JSON.stringify(getQQDebugSnapshot(session, d))}`)
   }
   return null
 }
@@ -567,7 +567,7 @@ export async function sendQQMarkdown(session: any, markdown: string, keyboard: o
       await session.bot.internal.sendMessage(session.channelId, payload)
     }
   } catch (error) {
-    session.logger?.warn?.('[awa-quote-image] 发送 QQ Markdown 失败（不影响图片）: %s', error)
+    session.logger?.warn?.('⚠️ 发送 QQ Markdown 失败（不影响图片）: %s', error)
     if (throwOnError) throw error
   }
 }
