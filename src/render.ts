@@ -71,6 +71,60 @@ async function waitForFontsAndStableLayout(browserPage, selector: string) {
     }, selector);
 }
 
+async function getScreenshotClip(
+    browserPage,
+    selector: string,
+    fixedCanvas?: { width: number; minHeight: number },
+) {
+    const metrics = await browserPage.evaluate((targetSelector: string) => {
+        const element = document.querySelector(targetSelector);
+        if (!element) return null;
+
+        const rect = element.getBoundingClientRect();
+        return {
+            devicePixelRatio: window.devicePixelRatio,
+            target: {
+                x: rect.left + window.scrollX,
+                y: rect.top + window.scrollY,
+                width: rect.width,
+                height: rect.height,
+                scrollWidth: element.scrollWidth,
+                scrollHeight: element.scrollHeight,
+            },
+            body: {
+                width: document.body.getBoundingClientRect().width,
+                height: document.body.getBoundingClientRect().height,
+                scrollWidth: document.body.scrollWidth,
+                scrollHeight: document.body.scrollHeight,
+            },
+        };
+    }, selector);
+
+    if (!metrics) {
+        throw new Error(`无法找到渲染容器元素: ${selector}。可能是HTML模板结构有误或CSS加载失败。`);
+    }
+
+    const clip = fixedCanvas
+        ? {
+            x: 0,
+            y: 0,
+            width: fixedCanvas.width,
+            height: Math.max(
+                fixedCanvas.minHeight,
+                Math.ceil(metrics.target.height),
+                Math.ceil(metrics.target.scrollHeight),
+            ),
+        }
+        : {
+            x: Math.max(0, Math.floor(metrics.target.x)),
+            y: Math.max(0, Math.floor(metrics.target.y)),
+            width: Math.max(1, Math.ceil(metrics.target.width)),
+            height: Math.max(1, Math.ceil(metrics.target.height)),
+        };
+
+    return { ...metrics, clip };
+}
+
 const getOriginBlackWhiteTemplateStr = async (options: TemplateOptions): Promise<string> => {
     const sentenceLength = options.sentence.length;
     const sentenceFontSize = getFontSize(sentenceLength, 100, 0.40, 100);
@@ -113,12 +167,12 @@ const getModernSourceHanSerifSCTemplateStr = async (options: TemplateOptions): P
     const timestamp = getTimestamp();
     const ws = options.preserveNewlines ? 'white-space:pre-wrap;' : '';
 
-    const cardWidth = options.width * 0.9;
+    const cardWidth = options.width - 90;
     const avatarSize = 200;
 
     const css = options.enableDarkMode
-        ? `${getFontFaceCss(options)}body{margin:0;padding:0;}#render-root{margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#fff;position:relative;}#content-wrapper{margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(0,0,0,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;} .avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#fff;text-shadow:0 0 6px rgba(0,0,0,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#fff;text-shadow:0 0 4px rgba(0,0,0,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(255,255,255,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(255,255,255,0.6);text-align:right;margin-top:8px;}`
-        : `${getFontFaceCss(options)}body{margin:0;padding:0;}#render-root{margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#000;position:relative;}#content-wrapper{margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;}.avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#000;text-shadow:0 0 6px rgba(255,255,255,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#000;text-shadow:0 0 4px rgba(255,255,255,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(0,0,0,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(0,0,0,0.6);text-align:right;margin-top:8px;}`;
+        ? `${getFontFaceCss(options)}body{margin:0;padding:0;}#render-root{box-sizing:border-box;margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#fff;position:relative;}#content-wrapper{box-sizing:border-box;margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(0,0,0,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;} .avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#fff;text-shadow:0 0 6px rgba(0,0,0,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#fff;text-shadow:0 0 4px rgba(0,0,0,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(255,255,255,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(255,255,255,0.6);text-align:right;margin-top:8px;}`
+        : `${getFontFaceCss(options)}body{margin:0;padding:0;}#render-root{box-sizing:border-box;margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#000;position:relative;}#content-wrapper{box-sizing:border-box;margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;}.avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#000;text-shadow:0 0 6px rgba(255,255,255,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#000;text-shadow:0 0 4px rgba(255,255,255,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(0,0,0,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(0,0,0,0.6);text-align:right;margin-top:8px;}`;
 
     return `
 <!DOCTYPE html>
@@ -252,6 +306,7 @@ export async function renderQuoteImage(
         selectedStyle: ImageStyleKey,   fontBase64: string,             enableDarkMode: boolean,
         emojiFontBase64?: string,
         imageType: ImageType,           enablePageScreenshotQuality: number,
+        verboseConsoleLog?: boolean,
         showUserId: boolean,            showTimestamp: boolean,
         preserveNewlines: boolean,
         groupBadgeInfo?: {
@@ -326,15 +381,29 @@ export async function renderQuoteImage(
         await browserPage.waitForSelector(wrapperId, { timeout: 5000 });
         await waitForFontsAndStableLayout(browserPage, wrapperId);
 
-        const element = await browserPage.$(wrapperId);
-
-        if (!element) {
-            throw new Error(`无法找到渲染容器元素: ${wrapperId}。可能是HTML模板结构有误或CSS加载失败。`);
+        const screenshotClip = await getScreenshotClip(
+            browserPage,
+            wrapperId,
+            args.selectedStyle === 'MODERN_SOURCE_HAN_SERIF_SC'
+                ? { width: args.width, minHeight: args.minHeight }
+                : undefined,
+        );
+        if (args.verboseConsoleLog) {
+            ctx.logger.info(`📐 Puppeteer screenshot clip: style=${args.selectedStyle}, selector=${wrapperId}, metrics=${JSON.stringify(screenshotClip)}`);
+        } else {
+            ctx.logger.debug(`🔍 Puppeteer screenshot clip: style=${args.selectedStyle}, selector=${wrapperId}, metrics=${JSON.stringify(screenshotClip)}`);
         }
 
-        const res = await element.screenshot({
+        const res = await browserPage.screenshot({
             encoding: 'base64',
             type: args.imageType,
+            clip: {
+                x: screenshotClip.clip.x,
+                y: screenshotClip.clip.y,
+                width: screenshotClip.clip.width,
+                height: screenshotClip.clip.height,
+            },
+            captureBeyondViewport: true,
             ...(args.imageType !== IMAGE_TYPES.PNG && { quality: args.enablePageScreenshotQuality })
         });
         return res;

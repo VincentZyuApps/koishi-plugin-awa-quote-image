@@ -339,6 +339,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
 				emojiFontBase64,
 				imageType: config.imageType, enablePageScreenshotQuality: config.pageScreenshotQuality,
+				verboseConsoleLog: config.verboseConsoleLog || options.verbose,
 				showUserId: config.showUserId !== false, showTimestamp: config.showTimestamp !== false,
 				preserveNewlines: options.newlines !== false,
 				groupBadgeInfo: groupBadgeInfo,
