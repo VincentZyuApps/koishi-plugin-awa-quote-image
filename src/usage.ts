@@ -28,14 +28,14 @@ export const usage = `
   <br>
 </p>
 
-<h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
-<p><b>💾 database 是可选服务：</b>QQ 引用缓存默认使用 database 磁盘模式；未启用 database 时会自动退回内存缓存。</p>
-
 <h2>💬 交流反馈</h2>
 <p>🐛 Bug 反馈 / 💡 建议 / 👨‍💻 插件开发交流，欢迎加群：</p>
 <p><del>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>259248174</b>   🎉（这个群G了）</del></p>
 <p>💬 插件使用问题 / 🐛 Bug反馈 / 👨‍💻 插件开发交流，欢迎加入QQ群：<b>1085190201</b> 🎉</p>
 <p>💡 在群里直接艾特我，回复的更快哦~ ✨</p>
+
+<h2 style="color: #ff4444; font-weight: 900; font-size: 24px; margin: 20px 0;">⚠️ 重要提示：需要开启 <b>puppeteer</b> 和 <b>http</b> 插件，本插件才能正常使用捏！</h2>
+<p><b>💾 database 是可选服务：</b>QQ 引用缓存默认使用 database 磁盘模式；未启用 database 时会自动退回内存缓存。</p>
 
 <p><b>💡 提示：</b>
   <a href="https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image" target="_blank">

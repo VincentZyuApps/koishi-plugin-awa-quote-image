@@ -143,10 +143,10 @@ aqt -v      # 显示详细信息 📊
 | 配置项 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `enableQuote` | `boolean` | `true` | bot 发送消息时是否引用触发指令的消息 |
+| `enableWaitingHint` | `boolean` | `true` | 是否显示“正在渲染，请稍候”的等待提示 |
 | `onebotNameStyle` | `"name-only" \| "card-only" \| "name-card" \| "card-name"` | `"name-card"` | OneBot 平台用户名显示样式；非 OneBot 平台始终显示用户名 |
 | `showUserId` | `boolean` | `true` | 是否在图片中显示用户 ID，建议保持开启，降低伪造聊天记录风险 |
 | `showTimestamp` | `boolean` | `true` | 是否在图片中显示时间戳，建议保持开启 |
-| `enableWatingHint` | `boolean` | `true` | 是否显示“正在渲染，请稍候”的等待提示 |
 | `showGroupTitleInQqBubble` | `boolean` | `true` | QQ 气泡样式中是否显示群头衔和群等级，仅 OneBot 平台生效 |
 
 ### 🖼️ 图片渲染配置

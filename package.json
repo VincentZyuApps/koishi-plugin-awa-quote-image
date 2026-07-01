@@ -1,13 +1,12 @@
 {
   "name": "koishi-plugin-awa-quote-image",
   "description": "对群u的消息使用aqt 🎭 一键将群u发言渲染为“名人名言”梗图。支持多种html+css模板（思源/文楷/QQ气泡），使用 Puppeteer 出图。✨🎨 ",
-  "version": "0.2.10-rc.3+20260630",
+  "version": "0.2.10+20260701",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
     "lib"
   ],
-  "license": "MIT",
   "homepage": "https://github.com/VincentZyu233/koishi-plugin-awa-quote-image",
   "repository": {
     "type": "git",

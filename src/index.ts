@@ -151,7 +151,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 	async function renderAndSend({ session, options, quoteData, preUserObj = null }) {
 		const renderStartTime = Date.now()
-		const waitingHintMsgId = config.enableWatingHint
+		const waitingHintMsgId = config.enableWaitingHint
 			? (await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}🎨 正在渲染名人名言图片，请稍候... ⏳`))[0]
 			: null;
 

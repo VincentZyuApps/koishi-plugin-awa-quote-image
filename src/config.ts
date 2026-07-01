@@ -17,10 +17,10 @@ export interface Config {
 
 	// ===== 💬 会话设置 =====
 	enableQuote: boolean // 💬 是否引用触发指令的消息
+	enableWaitingHint: boolean // ⏳ 是否显示「渲染中，请等待...」提示
 	onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name' // 🎭 Onebot 平台用户名显示样式
 	showUserId: boolean // 🆔 是否在图片中显示用户 ID
 	showTimestamp: boolean // 🕐 是否在图片中显示时间戳
-	enableWatingHint: boolean // ⏳ 是否显示「渲染中，请等待...」提示
 	showGroupTitleInQqBubble: boolean // 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）
 
 	// ===== 🖼️ 图片渲染配置 =====
@@ -64,6 +64,10 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.default(true)
 			.description('💬 bot 发送消息时，是否引用触发消息的指令'),
+		enableWaitingHint: Schema
+			.boolean()
+			.default(true)
+			.description('⏳ 是否启用「渲染中，请等待...」提示消息'),
 		onebotNameStyle: Schema
 			.union([
 				Schema.const('name-only').description('🏷️ 只显示用户名'),
@@ -82,10 +86,6 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.default(true)
 			.description('🕐 是否在图片中显示时间戳 —— **强烈建议保持开启**，防止篡改时间伪造聊天记录，关闭后果自负，与作者无关 ⚠️'),
-		enableWatingHint: Schema
-			.boolean()
-			.default(true)
-			.description('⏳ 是否启用「渲染中，请等待...」提示消息'),
 		showGroupTitleInQqBubble: Schema
 			.boolean()
 			.default(true)
