@@ -113,12 +113,35 @@ export const DEFAULT_SOURCE_HAN_SERIF_PATH = getSourceHanSerifPathByBaseDir(proc
 export const DEFAULT_LXGW_WENKAI_PATH = getLxgwWenKaiPathByBaseDir(process.cwd())
 export const DEFAULT_TWEMOJI_COLR_PATH = getTwemojiColrPathByBaseDir(process.cwd())
 
+function getCrossPlatformBasename(filePath: string): string {
+  return filePath.split(/[\\/]/).filter(Boolean).pop() || filePath
+}
+
+function getRuntimeManagedFontPath(baseDir: string, fileName: string): string | null {
+  switch (fileName) {
+    case SOURCE_HAN_SERIF_FILE_NAME:
+      return getSourceHanSerifPathByBaseDir(baseDir)
+    case LXGW_WENKAI_FILE_NAME:
+      return getLxgwWenKaiPathByBaseDir(baseDir)
+    case TWEMOJI_COLR_FILE_NAME:
+      return getTwemojiColrPathByBaseDir(baseDir)
+    default:
+      return null
+  }
+}
+
 export function resolveRuntimeFontPath(ctx: Context, filePath: string): string {
   const sourceHanSerifPath = getSourceHanSerifPathByBaseDir(ctx.baseDir)
   const lxgwWenKaiPath = getLxgwWenKaiPathByBaseDir(ctx.baseDir)
   const twemojiColrPath = getTwemojiColrPathByBaseDir(ctx.baseDir)
 
   if (!filePath) return sourceHanSerifPath
+
+  const fileName = getCrossPlatformBasename(filePath)
+  const managedRuntimePath = getRuntimeManagedFontPath(ctx.baseDir, fileName)
+  if (managedRuntimePath) {
+    return managedRuntimePath
+  }
 
   if (filePath === DEFAULT_SOURCE_HAN_SERIF_PATH || filePath === sourceHanSerifPath) {
     return sourceHanSerifPath

@@ -40,12 +40,37 @@ const getTimestamp = () => {
 
 const getFontFaceCss = (options: TemplateOptions) => {
     const emojiFontFace = options.emojiFontBase64
-        ? `@font-face{font-family:'TwemojiCOLR';src:url(data:font/truetype;charset=utf-8;base64,${options.emojiFontBase64}) format('truetype');unicode-range:U+1F000-1FAFF,U+2600-27BF,U+FE0F,U+200D;}`
+        ? `@font-face{font-family:'TwemojiCOLR';src:url(data:font/truetype;charset=utf-8;base64,${options.emojiFontBase64}) format('truetype');font-display:block;unicode-range:U+1F000-1FAFF,U+2600-27BF,U+FE0F,U+200D;}`
         : '';
-    return `@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');}${emojiFontFace}`;
+    return `@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');font-display:block;}${emojiFontFace}html{margin:0;padding:0;}*,*::before,*::after{box-sizing:border-box;}`;
 };
 
 const FONT_STACK = `'CustomFont','TwemojiCOLR','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji','Microsoft YaHei',sans-serif`;
+
+async function waitForFontsAndStableLayout(browserPage, selector: string) {
+    await browserPage.evaluate(async (targetSelector: string) => {
+        const fonts = (document as any).fonts;
+        if (fonts?.ready) await fonts.ready;
+
+        const element = document.querySelector(targetSelector);
+        if (!element) return;
+
+        let previous = '';
+        let stableFrames = 0;
+        for (let i = 0; i < 10 && stableFrames < 2; i++) {
+            await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+            const rect = element.getBoundingClientRect();
+            const current = [rect.x, rect.y, rect.width, rect.height, document.body.scrollWidth, document.body.scrollHeight].join(',');
+            if (current === previous) {
+                stableFrames++;
+            } else {
+                stableFrames = 0;
+                previous = current;
+            }
+        }
+    }, selector);
+}
+
 const getOriginBlackWhiteTemplateStr = async (options: TemplateOptions): Promise<string> => {
     const sentenceLength = options.sentence.length;
     const sentenceFontSize = getFontSize(sentenceLength, 100, 0.40, 100);
@@ -281,8 +306,8 @@ export async function renderQuoteImage(
             ctx.logger.error(`❌ Puppeteer page error: ${error.message}`);
         });
 
-        await browserPage.setContent(html);
         await browserPage.setViewport({ width: args.width, height: 9999 });
+        await browserPage.setContent(html, { waitUntil: 'load' });
 
         await browserPage.waitForSelector('body', { timeout: 5000 });
 
@@ -296,6 +321,9 @@ export async function renderQuoteImage(
             wrapperId = '#content-wrapper';  // 其他样式使用默认容器
         }
         
+        await browserPage.waitForSelector(wrapperId, { timeout: 5000 });
+        await waitForFontsAndStableLayout(browserPage, wrapperId);
+
         const element = await browserPage.$(wrapperId);
 
         if (!element) {
