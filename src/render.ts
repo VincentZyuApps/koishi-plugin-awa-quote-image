@@ -10,6 +10,7 @@ interface TemplateOptions {
     width: number;
     minHeight: number;
     fontBase64: string;
+    fontUnicodeRange?: string;
     emojiFontBase64?: string;
     enableDarkMode: boolean;
     showUserId: boolean;
@@ -42,7 +43,8 @@ const getFontFaceCss = (options: TemplateOptions) => {
     const emojiFontFace = options.emojiFontBase64
         ? `@font-face{font-family:'TwemojiCOLR';src:url(data:font/truetype;charset=utf-8;base64,${options.emojiFontBase64}) format('truetype');font-display:block;unicode-range:U+1F000-1FAFF,U+2600-27BF,U+FE0F,U+200D;}`
         : '';
-    return `@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');font-display:block;}${emojiFontFace}`;
+    const customFontRange = options.fontUnicodeRange ? `unicode-range:${options.fontUnicodeRange};` : '';
+    return `@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');font-display:block;${customFontRange}}${emojiFontFace}`;
 };
 
 const FONT_STACK = `'CustomFont','TwemojiCOLR','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji','Microsoft YaHei',sans-serif`;
@@ -311,6 +313,7 @@ export async function renderQuoteImage(
         sentence: string,               username: string,               userId:string,  avatarBase64: string,
         width: number,                  minHeight: number,
         selectedStyle: ImageStyleKey,   fontBase64: string,             enableDarkMode: boolean,
+        fontUnicodeRange?: string,
         emojiFontBase64?: string,
         imageType: ImageType,           enablePageScreenshotQuality: number,
         verboseConsoleLog?: boolean,
@@ -336,6 +339,7 @@ export async function renderQuoteImage(
             width: args.width,
             minHeight: args.minHeight,
             fontBase64: args.fontBase64,
+            fontUnicodeRange: args.fontUnicodeRange,
             emojiFontBase64: args.emojiFontBase64,
             enableDarkMode: args.enableDarkMode,
             showUserId: args.showUserId,

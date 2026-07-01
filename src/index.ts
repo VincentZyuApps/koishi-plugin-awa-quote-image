@@ -6,7 +6,7 @@ import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
 import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
-import { DEFAULT_SOURCE_HAN_SERIF_PATH, checkAndDownloadFonts, fileToBase64, fileToBase64WithFallback, resolveRuntimeFontPath } from './utils';
+import { DEFAULT_SOURCE_HAN_SERIF_PATH, SOURCE_HAN_SERIF_FILE_NAME, checkAndDownloadFonts, fileToBase64, fileToBase64WithFallback, resolveRuntimeFontPath } from './utils';
 import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData, registerQQQuoteCacheMiddleware, setupQQQuoteCacheDatabase } from './qq';
 
 export const inject = {
@@ -16,6 +16,11 @@ export const inject = {
 
 export const name = 'awa-quote-image';
 const PLUGIN_NAME = name;
+const SOURCE_HAN_SERIF_CJK_UNICODE_RANGE = 'U+2E80-2EFF,U+3000-303F,U+31C0-31EF,U+3200-32FF,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FF00-FFEF';
+
+function isSourceHanSerifFontPath(filePath: string) {
+	return filePath.split(/[\\/]/).pop() === SOURCE_HAN_SERIF_FILE_NAME
+}
 
 export { usage } from './usage'
 export const Config = ConfigSchema
@@ -304,6 +309,9 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		const selectedFontPath = resolveRuntimeFontPath(ctx, selectedStyleDetailObj.fontPath);
 		const fontResult = await fileToBase64WithFallback(ctx, PLUGIN_NAME, selectedFontPath);
 		const font_base64 = fontResult.fontBase64;
+		const fontUnicodeRange = isSourceHanSerifFontPath(fontResult.usedFontPath)
+			? SOURCE_HAN_SERIF_CJK_UNICODE_RANGE
+			: undefined;
 		const emojiFontPath = resolveRuntimeFontPath(ctx, config.emojiFontPath);
 		const emojiFontBase64 = config.enableReleaseEmojiFont
 			? await fileToBase64(ctx, PLUGIN_NAME, emojiFontPath)
@@ -337,6 +345,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 				sentence: quoteData.content, username: usernameArg, userId: quoteData.userId, avatarBase64: avatar_base64,
 				width: config.imageWidth, minHeight: config.imageMinHeight,
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
+				fontUnicodeRange,
 				emojiFontBase64,
 				imageType: config.imageType, enablePageScreenshotQuality: config.pageScreenshotQuality,
 				verboseConsoleLog: config.verboseConsoleLog || options.verbose,
