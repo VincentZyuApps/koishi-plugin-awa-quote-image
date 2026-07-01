@@ -46,6 +46,7 @@ const getFontFaceCss = (options: TemplateOptions) => {
 };
 
 const FONT_STACK = `'CustomFont','TwemojiCOLR','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji','Microsoft YaHei',sans-serif`;
+const CONTENT_OVERFLOW_SAFE_CSS = `#content-wrapper{box-sizing:border-box;min-width:0;max-width:calc(100% - 72px);}.quote{min-width:0;}.sentence,.username,.userid,.timestamp{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}`;
 
 async function waitForFontsAndStableLayout(browserPage, selector: string) {
     await browserPage.evaluate(async (targetSelector: string) => {
@@ -108,11 +109,19 @@ async function getScreenshotClip(
         ? {
             x: 0,
             y: 0,
-            width: fixedCanvas.width,
+            width: Math.max(
+                fixedCanvas.width,
+                Math.ceil(metrics.target.width),
+                Math.ceil(metrics.target.scrollWidth),
+                Math.ceil(metrics.body.width),
+                Math.ceil(metrics.body.scrollWidth),
+            ),
             height: Math.max(
                 fixedCanvas.minHeight,
                 Math.ceil(metrics.target.height),
                 Math.ceil(metrics.target.scrollHeight),
+                Math.ceil(metrics.body.height),
+                Math.ceil(metrics.body.scrollHeight),
             ),
         }
         : {
@@ -167,12 +176,12 @@ const getModernSourceHanSerifSCTemplateStr = async (options: TemplateOptions): P
     const timestamp = getTimestamp();
     const ws = options.preserveNewlines ? 'white-space:pre-wrap;' : '';
 
-    const cardWidth = options.width - 90;
+    const cardWidth = options.width * 0.9;
     const avatarSize = 200;
 
     const css = options.enableDarkMode
-        ? `${getFontFaceCss(options)}body{margin:0;padding:0;}#render-root{box-sizing:border-box;margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#fff;position:relative;}#content-wrapper{box-sizing:border-box;margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(0,0,0,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;} .avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#fff;text-shadow:0 0 6px rgba(0,0,0,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#fff;text-shadow:0 0 4px rgba(0,0,0,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(255,255,255,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(255,255,255,0.6);text-align:right;margin-top:8px;}`
-        : `${getFontFaceCss(options)}body{margin:0;padding:0;}#render-root{box-sizing:border-box;margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#000;position:relative;}#content-wrapper{box-sizing:border-box;margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;}.avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#000;text-shadow:0 0 6px rgba(255,255,255,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#000;text-shadow:0 0 4px rgba(255,255,255,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(0,0,0,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(0,0,0,0.6);text-align:right;margin-top:8px;}`;
+        ? `${getFontFaceCss(options)}body{margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#fff;position:relative;}#content-wrapper{margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(0,0,0,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;} .avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#fff;text-shadow:0 0 6px rgba(0,0,0,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#fff;text-shadow:0 0 4px rgba(0,0,0,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(255,255,255,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(255,255,255,0.6);text-align:right;margin-top:8px;}`
+        : `${getFontFaceCss(options)}body{margin:0;padding:9px;width:${options.width}px;min-height:${options.minHeight}px;height:auto;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#000;position:relative;}#content-wrapper{margin:36px;display:flex;align-items:center;justify-content:flex-start;width:${cardWidth}px;backdrop-filter:blur(20px) saturate(180%);background-color:rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:32px;padding:40px 60px;gap:40px;flex-direction:row;}.avatar{width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.2);}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:16px;word-break:break-word;line-height:1.3;color:#000;text-shadow:0 0 6px rgba(255,255,255,0.4);${ws}}.username{font-size:${usernameFontSize}px;opacity:0.75;text-align:right;color:#000;text-shadow:0 0 4px rgba(255,255,255,0.3);}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(0,0,0,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(0,0,0,0.6);text-align:right;margin-top:8px;}`;
 
     return `
 <!DOCTYPE html>
@@ -182,15 +191,13 @@ const getModernSourceHanSerifSCTemplateStr = async (options: TemplateOptions): P
     <style>${css}</style>
 </head>
 <body>
-    <div id="render-root">
-        <div id="content-wrapper">
-            <div class="avatar"></div>
-            <div class="quote">
-                <div class="sentence">"${options.sentence}"</div>
-                <div class="username">—— ${options.username}</div>
-                ${options.showUserId ? `<div class="userid">(userId:${options.userId})</div>` : ''}
-                ${options.showTimestamp ? `<div class="timestamp">${timestamp}</div>` : ''}
-            </div>
+    <div id="content-wrapper">
+        <div class="avatar"></div>
+        <div class="quote">
+            <div class="sentence">"${options.sentence}"</div>
+            <div class="username">—— ${options.username}</div>
+            ${options.showUserId ? `<div class="userid">(userId:${options.userId})</div>` : ''}
+            ${options.showTimestamp ? `<div class="timestamp">${timestamp}</div>` : ''}
         </div>
     </div>
 </body>
@@ -208,8 +215,8 @@ const getCleanLXGWWenkaiTemplateStr = async (options: TemplateOptions): Promise<
     const ws = options.preserveNewlines ? 'white-space:pre-wrap;' : '';
 
     const css = options.enableDarkMode
-        ? `${getFontFaceCss(options)}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#eee;position:relative;background-color:#222;}#content-wrapper{display:flex;align-items:center;background-color:rgba(0,0,0,0.8);border-radius:24px;padding:32px 48px;gap:32px;box-shadow:0 2px 12px rgba(0,0,0,0.3);}.avatar{width:240px;height:240px;border-radius:32px;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:14px;word-break:break-word;line-height:1.4;color:#f0f0f0;${ws}}.username{font-size:${usernameFontSize}px;opacity:0.7;text-align:right;color:#aaa;}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(255,255,255,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(255,255,255,0.6);text-align:right;margin-top:6px;}`
-        : `${getFontFaceCss(options)}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#333;position:relative;background-color:#f0f0f0;}#content-wrapper{display:flex;align-items:center;background-color:rgba(255,255,255,0.92);border-radius:24px;padding:32px 48px;gap:32px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}.avatar{width:240px;height:240px;border-radius:32px;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:14px;word-break:break-word;line-height:1.4;color:#222;${ws}}.username{font-size:${usernameFontSize}px;opacity:0.7;text-align:right;color:#4A90E2;}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(0,0,0,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(0,0,0,0.6);text-align:right;margin-top:6px;}`;
+        ? `${getFontFaceCss(options)}${CONTENT_OVERFLOW_SAFE_CSS}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#eee;position:relative;background-color:#222;}#content-wrapper{display:flex;align-items:center;background-color:rgba(0,0,0,0.8);border-radius:24px;padding:32px 48px;gap:32px;box-shadow:0 2px 12px rgba(0,0,0,0.3);}.avatar{width:240px;height:240px;border-radius:32px;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:14px;word-break:break-word;line-height:1.4;color:#f0f0f0;${ws}}.username{font-size:${usernameFontSize}px;opacity:0.7;text-align:right;color:#aaa;}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(255,255,255,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(255,255,255,0.6);text-align:right;margin-top:6px;}`
+        : `${getFontFaceCss(options)}${CONTENT_OVERFLOW_SAFE_CSS}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;display:flex;align-items:center;justify-content:center;font-family:${FONT_STACK};color:#333;position:relative;background-color:#f0f0f0;}#content-wrapper{display:flex;align-items:center;background-color:rgba(255,255,255,0.92);border-radius:24px;padding:32px 48px;gap:32px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}.avatar{width:240px;height:240px;border-radius:32px;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;flex-shrink:0;}.quote{display:flex;flex-direction:column;justify-content:center;flex:1;}.sentence{font-size:${sentenceFontSize}px;margin-bottom:14px;word-break:break-word;line-height:1.4;color:#222;${ws}}.username{font-size:${usernameFontSize}px;opacity:0.7;text-align:right;color:#4A90E2;}.userid{font-size:${userIdFontSize}px;opacity:0.6;text-align:right;color:rgba(0,0,0,0.7);margin-top:2px;}.timestamp{font-size:20px;color:rgba(0,0,0,0.6);text-align:right;margin-top:6px;}`;
 
     return `
 <!DOCTYPE html>
@@ -371,7 +378,7 @@ export async function renderQuoteImage(
         // 根据不同的样式选择不同的容器选择器
         let wrapperId: string;
         if (args.selectedStyle === 'MODERN_SOURCE_HAN_SERIF_SC') {
-            wrapperId = '#render-root';
+            wrapperId = 'body';
         } else if (args.selectedStyle === 'QQ_BUBBLE') {
             wrapperId = '#qq-bubble-container';  // QQ气泡样式使用不同的容器ID
         } else {
@@ -381,12 +388,25 @@ export async function renderQuoteImage(
         await browserPage.waitForSelector(wrapperId, { timeout: 5000 });
         await waitForFontsAndStableLayout(browserPage, wrapperId);
 
+        if (args.selectedStyle !== 'MODERN_SOURCE_HAN_SERIF_SC') {
+            const element = await browserPage.$(wrapperId);
+
+            if (!element) {
+                throw new Error(`无法找到渲染容器元素: ${wrapperId}。可能是HTML模板结构有误或CSS加载失败。`);
+            }
+
+            const res = await element.screenshot({
+                encoding: 'base64',
+                type: args.imageType,
+                ...(args.imageType !== IMAGE_TYPES.PNG && { quality: args.enablePageScreenshotQuality })
+            });
+            return res;
+        }
+
         const screenshotClip = await getScreenshotClip(
             browserPage,
             wrapperId,
-            args.selectedStyle === 'MODERN_SOURCE_HAN_SERIF_SC'
-                ? { width: args.width, minHeight: args.minHeight }
-                : undefined,
+            { width: args.width, minHeight: args.minHeight },
         );
         if (args.verboseConsoleLog) {
             ctx.logger.info(`📐 Puppeteer screenshot clip: style=${args.selectedStyle}, selector=${wrapperId}, metrics=${JSON.stringify(screenshotClip)}`);
