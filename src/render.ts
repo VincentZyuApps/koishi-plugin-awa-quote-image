@@ -47,7 +47,7 @@ const getFontFaceCss = (options: TemplateOptions) => {
     return `@font-face{font-family:'CustomFont';src:url(data:font/truetype;charset=utf-8;base64,${options.fontBase64}) format('truetype');font-display:block;${customFontRange}}${emojiFontFace}`;
 };
 
-const FONT_STACK = `'CustomFont','TwemojiCOLR','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji','Microsoft YaHei',sans-serif`;
+const FONT_STACK = `'CustomFont','Microsoft YaHei','Segoe UI',Arial,sans-serif,'TwemojiCOLR','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji'`;
 const CONTENT_OVERFLOW_SAFE_CSS = `#content-wrapper{box-sizing:border-box;min-width:0;max-width:calc(100% - 72px);}.quote{min-width:0;}.sentence,.username,.userid,.timestamp{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}`;
 
 async function waitForFontsAndStableLayout(browserPage, selector: string) {
