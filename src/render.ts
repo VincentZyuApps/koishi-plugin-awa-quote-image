@@ -4,6 +4,7 @@ import { IMAGE_TYPES, ImageStyleKey, ImageType } from './types';
 
 interface TemplateOptions {
     sentence: string;
+    sentenceHtml?: string;
     username: string;
     userId: string;
     avatarBase64: string;
@@ -46,8 +47,8 @@ const escapeHtmlText = (value: unknown) => String(value ?? '')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-const getEscapedTemplateText = (options: Pick<TemplateOptions, 'sentence' | 'username' | 'userId'>, timestamp: string) => ({
-    sentence: escapeHtmlText(options.sentence),
+const getEscapedTemplateText = (options: Pick<TemplateOptions, 'sentence' | 'sentenceHtml' | 'username' | 'userId'>, timestamp: string) => ({
+    sentence: options.sentenceHtml ?? escapeHtmlText(options.sentence),
     username: escapeHtmlText(options.username),
     userId: escapeHtmlText(options.userId),
     timestamp: escapeHtmlText(timestamp),
@@ -63,7 +64,8 @@ const getFontFaceCss = (options: TemplateOptions) => {
 
 const FONT_STACK = `'CustomFont','Microsoft YaHei','Segoe UI',Arial,sans-serif,'TwemojiCOLR','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji'`;
 const USERNAME_ELLIPSIS_CSS = `max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;word-break:normal;`;
-const CONTENT_OVERFLOW_SAFE_CSS = `*{box-sizing:border-box;}#content-wrapper{min-width:0;max-width:calc(100% - 72px);}.quote{min-width:0;}.sentence,.userid,.timestamp{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}.username{max-width:100%;}`;
+const INLINE_RESOURCE_CSS = `.quote-inline-image{max-width:100%;max-height:8em;object-fit:contain;vertical-align:middle;display:inline-block;border-radius:6px;}.quote-inline-emoji{max-height:1.6em;border-radius:0;}`;
+const CONTENT_OVERFLOW_SAFE_CSS = `*{box-sizing:border-box;}#content-wrapper{min-width:0;max-width:calc(100% - 72px);}.quote{min-width:0;}.sentence,.userid,.timestamp{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}.username{max-width:100%;}${INLINE_RESOURCE_CSS}`;
 
 async function waitForFontsAndStableLayout(browserPage, selector: string) {
     await browserPage.evaluate(async (targetSelector: string) => {
@@ -295,9 +297,9 @@ const getQqBubbleTemplateStr = async (options: TemplateOptions): Promise<string>
     // 根据 enableDarkMode 选择颜色方案
     const css = options.enableDarkMode
         ? // 黑夜模式
-        `${getFontFaceCss(options)}*{box-sizing:border-box;margin:0;padding:0;}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;font-family:${FONT_STACK};background-color:#1A1A1A;color:#CCCCCC;}#qq-bubble-container{display:flex;align-items:flex-start;gap:20px;max-width:700px;margin:0 auto;padding:50px 60px;}.avatar{width:80px;height:80px;border-radius:50%;flex-shrink:0;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);}.content-area{flex:1;display:flex;flex-direction:column;gap:8px;}.header-row{display:flex;align-items:center;gap:8px;}.group-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:14px;font-weight:bold;width:fit-content;}.badge-level{}.badge-title{}.badge-level-only{padding:3px 10px;}.username-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}.username{font-size:${usernameFontSize}px;font-weight:bold;color:#E0E0E0;white-space:nowrap;max-width:20ch;overflow:hidden;text-overflow:ellipsis;}.userid{font-size:${userIdFontSize}px;color:#888;}.message-bubble{background-color:#2D2D2D;border-radius:12px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.2);position:relative;max-width:480px;word-break:break-word;line-height:1.6;}.message-bubble::before{content:'';position:absolute;left:-8px;top:10px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:8px solid #2D2D2D;}.sentence{font-size:${sentenceFontSize}px;color:#E0E0E0;${ws}}.metadata{display:flex;justify-content:space-between;align-items:center;margin-top:0;font-size:16px;color:#888;}.timestamp{font-size:16px;color:#888;}`
+        `${getFontFaceCss(options)}${INLINE_RESOURCE_CSS}*{box-sizing:border-box;margin:0;padding:0;}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;font-family:${FONT_STACK};background-color:#1A1A1A;color:#CCCCCC;}#qq-bubble-container{display:flex;align-items:flex-start;gap:20px;max-width:700px;margin:0 auto;padding:50px 60px;}.avatar{width:80px;height:80px;border-radius:50%;flex-shrink:0;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);}.content-area{flex:1;display:flex;flex-direction:column;gap:8px;}.header-row{display:flex;align-items:center;gap:8px;}.group-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:14px;font-weight:bold;width:fit-content;}.badge-level{}.badge-title{}.badge-level-only{padding:3px 10px;}.username-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}.username{font-size:${usernameFontSize}px;font-weight:bold;color:#E0E0E0;white-space:nowrap;max-width:20ch;overflow:hidden;text-overflow:ellipsis;}.userid{font-size:${userIdFontSize}px;color:#888;}.message-bubble{background-color:#2D2D2D;border-radius:12px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.2);position:relative;max-width:480px;word-break:break-word;line-height:1.6;}.message-bubble::before{content:'';position:absolute;left:-8px;top:10px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:8px solid #2D2D2D;}.sentence{font-size:${sentenceFontSize}px;color:#E0E0E0;${ws}}.metadata{display:flex;justify-content:space-between;align-items:center;margin-top:0;font-size:16px;color:#888;}.timestamp{font-size:16px;color:#888;}`
         : // 白天模式
-        `${getFontFaceCss(options)}*{box-sizing:border-box;margin:0;padding:0;}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;font-family:${FONT_STACK};background-color:#F5F5F5;color:#333;}#qq-bubble-container{display:flex;align-items:flex-start;gap:20px;max-width:700px;margin:0 auto;padding:50px 60px;}.avatar{width:80px;height:80px;border-radius:50%;flex-shrink:0;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;box-shadow:0 2px 8px rgba(0,0,0,0.1);}.content-area{flex:1;display:flex;flex-direction:column;gap:8px;}.header-row{display:flex;align-items:center;gap:8px;}.group-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:14px;font-weight:bold;width:fit-content;}.badge-level{}.badge-title{}.badge-level-only{padding:3px 10px;}.username-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}.username{font-size:${usernameFontSize}px;font-weight:bold;color:#333;white-space:nowrap;max-width:20ch;overflow:hidden;text-overflow:ellipsis;}.userid{font-size:${userIdFontSize}px;color:#999;}.message-bubble{background-color:#FFFFFF;border-radius:12px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);position:relative;max-width:480px;word-break:break-word;line-height:1.6;}.message-bubble::before{content:'';position:absolute;left:-8px;top:10px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:8px solid #FFFFFF;}.sentence{font-size:${sentenceFontSize}px;color:#333;${ws}}.metadata{display:flex;justify-content:space-between;align-items:center;margin-top:0;font-size:16px;color:#999;}.timestamp{font-size:16px;color:#999;}`;
+        `${getFontFaceCss(options)}${INLINE_RESOURCE_CSS}*{box-sizing:border-box;margin:0;padding:0;}body{margin:0;padding:0;width:${options.width}px;min-height:${options.minHeight}px;font-family:${FONT_STACK};background-color:#F5F5F5;color:#333;}#qq-bubble-container{display:flex;align-items:flex-start;gap:20px;max-width:700px;margin:0 auto;padding:50px 60px;}.avatar{width:80px;height:80px;border-radius:50%;flex-shrink:0;background-image:url(data:image/png;base64,${options.avatarBase64});background-size:cover;background-position:center;box-shadow:0 2px 8px rgba(0,0,0,0.1);}.content-area{flex:1;display:flex;flex-direction:column;gap:8px;}.header-row{display:flex;align-items:center;gap:8px;}.group-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:14px;font-weight:bold;width:fit-content;}.badge-level{}.badge-title{}.badge-level-only{padding:3px 10px;}.username-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}.username{font-size:${usernameFontSize}px;font-weight:bold;color:#333;white-space:nowrap;max-width:20ch;overflow:hidden;text-overflow:ellipsis;}.userid{font-size:${userIdFontSize}px;color:#999;}.message-bubble{background-color:#FFFFFF;border-radius:12px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);position:relative;max-width:480px;word-break:break-word;line-height:1.6;}.message-bubble::before{content:'';position:absolute;left:-8px;top:10px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:8px solid #FFFFFF;}.sentence{font-size:${sentenceFontSize}px;color:#333;${ws}}.metadata{display:flex;justify-content:space-between;align-items:center;margin-top:0;font-size:16px;color:#999;}.timestamp{font-size:16px;color:#999;}`;
 
     return `
 <!DOCTYPE html>
@@ -332,6 +334,7 @@ export async function renderQuoteImage(
     ctx: Context,
     args: {
         sentence: string,               username: string,               userId:string,  avatarBase64: string,
+        sentenceHtml?: string,
         width: number,                  minHeight: number,
         selectedStyle: ImageStyleKey,   fontBase64: string,             enableDarkMode: boolean,
         fontUnicodeRange?: string,
@@ -354,6 +357,7 @@ export async function renderQuoteImage(
     try {
         const templateOptions: TemplateOptions = {
             sentence: args.sentence,
+            sentenceHtml: args.sentenceHtml,
             username: args.username,
             userId: args.userId,
             avatarBase64: args.avatarBase64,

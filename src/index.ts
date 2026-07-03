@@ -105,6 +105,39 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		return ''
 	}
 
+	function escapeHtmlText(value: unknown) {
+		return String(value ?? '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;')
+	}
+
+	function escapeHtmlAttr(value: unknown) {
+		return escapeHtmlText(value).replace(/`/g, '&#96;')
+	}
+
+	function isSafeResourceUrl(value: string) {
+		return /^(https?:\/\/|data:image\/|file:|base64:\/\/)/i.test(value)
+	}
+
+	function normalizeResourceUrlForBrowser(value: string) {
+		if (/^base64:\/\//i.test(value)) {
+			return `data:image/png;base64,${value.slice('base64://'.length)}`
+		}
+		return value
+	}
+
+	function pickResourceUrl(attrs: any) {
+		const url = pickNonEmptyString(attrs?.src, attrs?.url, attrs?.file)
+		return url && isSafeResourceUrl(url) ? normalizeResourceUrlForBrowser(url) : ''
+	}
+
+	function renderInlineImageHtml(src: string, alt: string, className = 'quote-inline-image') {
+		return `<img class="${className}" src="${escapeHtmlAttr(src)}" alt="${escapeHtmlAttr(alt)}">`
+	}
+
 	function addTextBreakOpportunities(text: string) {
 		const zeroWidthSpace = '\u200B'
 		const breakAfterChars = new Set(['/', '.', '-', '_', '~', ':', '?', '#', '[', ']', '!', '$', '&', "'", '(', ')', '*', '+', ',', ';', '='])
@@ -145,7 +178,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		options: any,
 		quoteData: { content: string; userId: string; guildId: string },
 	) {
-		if (!quoteData.content) return { content: '', renderContent: '' }
+		if (!quoteData.content) return { content: '', renderContent: '', renderContentHtml: '' }
 
 		const isVerbose = config.verboseConsoleLog || options.verbose
 		const memberInfoCache = new Map<string, Promise<any | null>>()
@@ -207,34 +240,77 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			return renderMentionText(displayName, forImage)
 		}
 
-		async function renderElements(elements: any[], forImage: boolean): Promise<string> {
-			const chunks = await Promise.all(elements.map((element) => renderElement(element, forImage)))
+		async function renderElements(elements: any[], mode: 'text' | 'image-text' | 'html'): Promise<string> {
+			const chunks = await Promise.all(elements.map((element) => renderElement(element, mode)))
 			return chunks.join('')
 		}
 
-		async function renderElement(element: any, forImage: boolean): Promise<string> {
+		function getResourceFallbackText(attrs: any, fallback: string) {
+			return pickNonEmptyString(attrs.title, attrs.summary, attrs.alt, attrs.name, attrs.text, fallback)
+		}
+
+		function getNestedImageUrl(element: any): string {
+			const children = Array.isArray(element?.children) ? element.children : []
+			for (const child of children) {
+				if (!child) continue
+				if (child.type === 'img' || child.type === 'image') {
+					const url = pickResourceUrl(child.attrs || {})
+					if (url) return url
+				}
+				const nested = getNestedImageUrl(child)
+				if (nested) return nested
+			}
+			return ''
+		}
+
+		async function renderElement(element: any, mode: 'text' | 'image-text' | 'html'): Promise<string> {
 			const type = element?.type
 			const attrs = element?.attrs || {}
 
-			if (type === 'text') return String(attrs.content ?? '')
-			if (type === 'at') return renderAtElement(attrs, forImage)
-			if (type === 'br') return '\n'
+			if (type === 'text') {
+				const text = String(attrs.content ?? '')
+				return mode === 'html' ? escapeHtmlText(text) : text
+			}
+			if (type === 'at') {
+				const text = await renderAtElement(attrs, mode !== 'text')
+				return mode === 'html' ? escapeHtmlText(text) : text
+			}
+			if (type === 'br') return mode === 'html' ? '<br>' : '\n'
 			if (type === 'sharp') {
 				const channelName = pickNonEmptyString(attrs.name, attrs.id)
-				return channelName ? `#${channelName}` : ''
+				const text = channelName ? `#${channelName}` : ''
+				return mode === 'html' ? escapeHtmlText(text) : text
 			}
 			if (type === 'img' || type === 'image') {
-				return pickNonEmptyString(attrs.title, attrs.summary, attrs.alt, '[图片]')
+				const fallbackText = getResourceFallbackText(attrs, '[图片]')
+				if (mode !== 'html') return fallbackText
+
+				const src = pickResourceUrl(attrs)
+				return src ? renderInlineImageHtml(src, fallbackText) : escapeHtmlText(fallbackText)
 			}
-			if (type === 'audio') return '[语音]'
-			if (type === 'video') return '[视频]'
-			if (type === 'file') return pickNonEmptyString(attrs.title, attrs.name, attrs.file, '[文件]')
+			if (type === 'audio') {
+				const text = '[语音]'
+				return mode === 'html' ? escapeHtmlText(text) : text
+			}
+			if (type === 'video') {
+				const text = '[视频]'
+				return mode === 'html' ? escapeHtmlText(text) : text
+			}
+			if (type === 'file') {
+				const text = pickNonEmptyString(attrs.title, attrs.name, attrs.file, '[文件]')
+				return mode === 'html' ? escapeHtmlText(text) : text
+			}
 			if (type === 'emoji' || type === 'face' || type === 'mface') {
-				const emojiName = pickNonEmptyString(attrs.name, attrs.text, attrs.id)
-				return emojiName ? `[${emojiName}]` : ''
+				const emojiName = pickNonEmptyString(attrs.summary, attrs.name, attrs.text, attrs.id)
+				const fallbackText = emojiName ? `[${emojiName}]` : ''
+				if (mode !== 'html') return fallbackText
+
+				const src = pickResourceUrl(attrs) || getNestedImageUrl(element)
+				const imageClass = type === 'mface' ? 'quote-inline-image quote-inline-mface' : 'quote-inline-image quote-inline-emoji'
+				return src ? renderInlineImageHtml(src, fallbackText || '表情', imageClass) : escapeHtmlText(fallbackText)
 			}
 			if (Array.isArray(element?.children) && element.children.length > 0) {
-				return renderElements(element.children, forImage)
+				return renderElements(element.children, mode)
 			}
 
 			return ''
@@ -242,17 +318,22 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 
 		try {
 			const elements = h.parse(quoteData.content) as any[]
-			const content = await renderElements(elements, false)
-			const renderContent = await renderElements(elements, true)
+			const content = await renderElements(elements, 'text')
+			const renderContent = await renderElements(elements, 'image-text')
+			const renderContentHtml = await renderElements(elements, 'html')
 			if (isVerbose && content !== quoteData.content) {
 				ctx.logger.info(`🔁 引用消息元素渲染结果: ${content.slice(0, 200)}${content.length > 200 ? '...' : ''}`)
 			}
-			return { content, renderContent }
+			return { content, renderContent, renderContentHtml }
 		} catch (error: any) {
 			if (isVerbose) {
 				ctx.logger.warn(`⚠️ 解析引用消息元素失败，使用原始文本: ${error?.message || error}`)
 			}
-			return { content: quoteData.content, renderContent: quoteData.content }
+			return {
+				content: quoteData.content,
+				renderContent: quoteData.content,
+				renderContentHtml: escapeHtmlText(quoteData.content),
+			}
 		}
 	}
 
@@ -326,6 +407,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			content: resolvedQuoteContent.content,
 		}
 		const renderQuoteContent = resolvedQuoteContent.renderContent
+		const renderQuoteContentHtml = resolvedQuoteContent.renderContentHtml
 
 		const FALLBACK_STYLE_DETAIL_OBJ = {
 			styleKey: IMAGE_STYLE_KEY_ARR[0],
@@ -510,6 +592,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			ctx,
 			{
 				sentence: renderQuoteContent, username: usernameArg, userId: quoteData.userId, avatarBase64: avatar_base64,
+				sentenceHtml: renderQuoteContentHtml,
 				width: config.imageWidth, minHeight: config.imageMinHeight,
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
 				fontUnicodeRange,
