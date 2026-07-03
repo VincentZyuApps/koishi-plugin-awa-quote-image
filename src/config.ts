@@ -1,6 +1,6 @@
 import { Schema } from 'koishi'
 
-import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './type'
+import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './types'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
 import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './utils'
 
@@ -18,7 +18,8 @@ export interface Config {
 	// ===== 💬 会话设置 =====
 	enableQuote: boolean // 💬 是否引用触发指令的消息
 	enableWaitingHint: boolean // ⏳ 是否显示「渲染中，请等待...」提示
-	onebotNameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name' // 🎭 Onebot 平台用户名显示样式
+	atRenderMode: 'none' | 'nick' | 'username' // 🎯 引用消息 @ 段渲染方式
+	nameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name' // 🎭 用户名显示样式
 	showUserId: boolean // 🆔 是否在图片中显示用户 ID
 	showTimestamp: boolean // 🕐 是否在图片中显示时间戳
 	showGroupTitleInQqBubble: boolean // 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）
@@ -68,16 +69,25 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.default(true)
 			.description('⏳ 是否启用「渲染中，请等待...」提示消息'),
-		onebotNameStyle: Schema
+		atRenderMode: Schema
+			.union([
+				Schema.const('none').description('🚫 不渲染 @ 消息段'),
+				Schema.const('nick').description('🪪 渲染群昵称 / 群名片'),
+				Schema.const('username').description('🏷️ 渲染用户名'),
+			])
+			.role('radio')
+			.default('nick')
+			.description('🎯 引用消息中的 @ 消息段渲染方式'),
+		nameStyle: Schema
 			.union([
 				Schema.const('name-only').description('🏷️ 只显示用户名'),
-				Schema.const('card-only').description('🪪 只显示群卡片【仅onebot】'),
-				Schema.const('name-card').description('🏷️🪪 用户名（群卡片）【仅onebot】'),
-				Schema.const('card-name').description('🪪🏷️ 群卡片（用户名）【仅onebot】'),
+				Schema.const('card-only').description('🪪 只显示群名片'),
+				Schema.const('name-card').description('🏷️🪪 用户名（群名片）'),
+				Schema.const('card-name').description('🪪🏷️ 群名片（用户名）'),
 			])
 			.role('radio')
 			.default('name-card')
-			.description('🎭 Onebot 平台用户名显示样式 <br/> <i>（仅对Onebot平台生效，非 Onebot 平台始终显示用户名）</i>'),
+			.description('🎭 用户名显示样式 <br/> <i>群名片需要平台支持群成员资料查询；不支持时会显示用户名。</i>'),
 		showUserId: Schema
 			.boolean()
 			.default(true)

@@ -5,7 +5,7 @@ import { } from 'koishi-plugin-adapter-onebot';
 import type { Config as AwaQuoteImageConfig } from './config';
 import { Config as ConfigSchema } from './config';
 import { renderQuoteImage } from './render';
-import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './type';
+import { IMAGE_STYLES, IMAGE_STYLE_KEY_ARR } from './types';
 import { DEFAULT_SOURCE_HAN_SERIF_PATH, SOURCE_HAN_SERIF_FILE_NAME, checkAndDownloadFonts, fileToBase64, fileToBase64WithFallback, resolveRuntimeFontPath } from './utils';
 import { buildQuoteMarkdown, buildQuoteKeyboard, sendQQMarkdown, resolveQQData, registerQQQuoteCacheMiddleware, setupQQQuoteCacheDatabase } from './qq';
 
@@ -96,6 +96,166 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		});
 	ctx.logger.info(`✅ aqt 指令注册完成`);
 
+	function pickNonEmptyString(...values: any[]) {
+		for (const value of values) {
+			if (value === undefined || value === null) continue
+			const text = String(value).trim()
+			if (text.length > 0) return text
+		}
+		return ''
+	}
+
+	function addTextBreakOpportunities(text: string) {
+		const zeroWidthSpace = '\u200B'
+		const breakAfterChars = new Set(['/', '.', '-', '_', '~', ':', '?', '#', '[', ']', '!', '$', '&', "'", '(', ')', '*', '+', ',', ';', '='])
+		let asciiRunLength = 0
+		let result = ''
+
+		for (const char of Array.from(text.replace(/\u200B/g, ''))) {
+			result += char
+
+			if (breakAfterChars.has(char)) {
+				result += zeroWidthSpace
+				asciiRunLength = 0
+				continue
+			}
+
+			if (/^[A-Za-z0-9]$/.test(char)) {
+				asciiRunLength++
+				if (asciiRunLength >= 12) {
+					result += zeroWidthSpace
+					asciiRunLength = 0
+				}
+			} else {
+				asciiRunLength = 0
+			}
+		}
+
+		return result
+	}
+
+	function renderMentionText(displayName: string, forImage: boolean) {
+		if (!displayName) return ''
+		if (!forImage || displayName.length < 16) return `@${displayName}`
+		return `@${addTextBreakOpportunities(displayName)}`
+	}
+
+	async function resolveQuoteContentForRender(
+		session: any,
+		options: any,
+		quoteData: { content: string; userId: string; guildId: string },
+	) {
+		if (!quoteData.content) return { content: '', renderContent: '' }
+
+		const isVerbose = config.verboseConsoleLog || options.verbose
+		const memberInfoCache = new Map<string, Promise<any | null>>()
+
+		async function getMentionedMemberInfo(userId: string) {
+			const cacheKey = `${quoteData.guildId || session.channelId || ''}:${userId}`
+			if (!memberInfoCache.has(cacheKey)) {
+				memberInfoCache.set(cacheKey, (async () => {
+					try {
+						if (typeof session.onebot?.getGroupMemberInfo === 'function' && quoteData.guildId) {
+							return await session.onebot.getGroupMemberInfo(quoteData.guildId, userId)
+						}
+						if (typeof session.bot?.getChannelMember === 'function' && session.channelId) {
+							return await session.bot.getChannelMember(session.channelId, userId)
+						}
+					} catch (error: any) {
+						if (isVerbose) {
+							ctx.logger.warn(`⚠️ 获取 @ 用户信息失败: guildId=${quoteData.guildId || '(empty)'}, userId=${userId}, error=${error?.message || error}`)
+						}
+					}
+					return null
+				})())
+			}
+			return memberInfoCache.get(cacheKey)!
+		}
+
+		async function renderAtElement(attrs: any, forImage: boolean) {
+			if (config.atRenderMode === 'none') return ''
+
+			const userId = pickNonEmptyString(attrs?.id, attrs?.userId, attrs?.qq)
+			const fallbackName = pickNonEmptyString(attrs?.name, attrs?.nickname, attrs?.nick, userId)
+			if (!userId) return renderMentionText(fallbackName, forImage)
+
+			const memberInfo = await getMentionedMemberInfo(userId)
+			const memberUser = memberInfo?.user || {}
+			const displayName = config.atRenderMode === 'nick'
+				? pickNonEmptyString(
+					memberInfo?.card,
+					memberInfo?.nick,
+					memberInfo?.nickname,
+					memberInfo?.name,
+					memberUser?.nick,
+					memberUser?.nickname,
+					memberUser?.name,
+					memberUser?.username,
+					attrs?.name,
+					userId,
+				)
+				: pickNonEmptyString(
+					memberUser?.name,
+					memberUser?.username,
+					memberInfo?.nickname,
+					memberInfo?.name,
+					memberInfo?.username,
+					attrs?.name,
+					userId,
+				)
+
+			return renderMentionText(displayName, forImage)
+		}
+
+		async function renderElements(elements: any[], forImage: boolean): Promise<string> {
+			const chunks = await Promise.all(elements.map((element) => renderElement(element, forImage)))
+			return chunks.join('')
+		}
+
+		async function renderElement(element: any, forImage: boolean): Promise<string> {
+			const type = element?.type
+			const attrs = element?.attrs || {}
+
+			if (type === 'text') return String(attrs.content ?? '')
+			if (type === 'at') return renderAtElement(attrs, forImage)
+			if (type === 'br') return '\n'
+			if (type === 'sharp') {
+				const channelName = pickNonEmptyString(attrs.name, attrs.id)
+				return channelName ? `#${channelName}` : ''
+			}
+			if (type === 'img' || type === 'image') {
+				return pickNonEmptyString(attrs.title, attrs.summary, attrs.alt, '[图片]')
+			}
+			if (type === 'audio') return '[语音]'
+			if (type === 'video') return '[视频]'
+			if (type === 'file') return pickNonEmptyString(attrs.title, attrs.name, attrs.file, '[文件]')
+			if (type === 'emoji' || type === 'face' || type === 'mface') {
+				const emojiName = pickNonEmptyString(attrs.name, attrs.text, attrs.id)
+				return emojiName ? `[${emojiName}]` : ''
+			}
+			if (Array.isArray(element?.children) && element.children.length > 0) {
+				return renderElements(element.children, forImage)
+			}
+
+			return ''
+		}
+
+		try {
+			const elements = h.parse(quoteData.content) as any[]
+			const content = await renderElements(elements, false)
+			const renderContent = await renderElements(elements, true)
+			if (isVerbose && content !== quoteData.content) {
+				ctx.logger.info(`🔁 引用消息元素渲染结果: ${content.slice(0, 200)}${content.length > 200 ? '...' : ''}`)
+			}
+			return { content, renderContent }
+		} catch (error: any) {
+			if (isVerbose) {
+				ctx.logger.warn(`⚠️ 解析引用消息元素失败，使用原始文本: ${error?.message || error}`)
+			}
+			return { content: quoteData.content, renderContent: quoteData.content }
+		}
+	}
+
 	async function do_aqt({ session, options }) {
 		const isVerbose = config.verboseConsoleLog || options.verbose
 		if (isVerbose) ctx.logger.info(`🔍 do_aqt: platform=${session.platform}, hasQuote=${!!session.quote}, quoteContent=${!!session.quote?.content}`)
@@ -130,7 +290,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			}
 			quoteData = qq
 			preUserObj = qq.username ? { name: qq.username, avatar: qq.avatar } : null
-		// Priority 2: session.quote 有内容（OneBot + crack适配器缓存命中）
+		// Priority 2: session.quote 有内容（适用于 OneBot、qq-crack 等会填充引用内容的适配器）
 		} else if (session.quote?.content) {
 			if (isVerbose) ctx.logger.info(`🔍 do_aqt: 走 Priority 1 session.quote`)
 			if (!session.quote.user?.id) {
@@ -159,6 +319,13 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		const waitingHintMsgId = config.enableWaitingHint
 			? (await session.send(`${config.enableQuote ? h.quote(session.messageId) : ''}🎨 正在渲染名人名言图片，请稍候... ⏳`))[0]
 			: null;
+
+		const resolvedQuoteContent = await resolveQuoteContentForRender(session, options, quoteData)
+		quoteData = {
+			...quoteData,
+			content: resolvedQuoteContent.content,
+		}
+		const renderQuoteContent = resolvedQuoteContent.renderContent
 
 		const FALLBACK_STYLE_DETAIL_OBJ = {
 			styleKey: IMAGE_STYLE_KEY_ARR[0],
@@ -216,19 +383,19 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 			return
 		}
 		let usernameArg = session_user_obj?.name || quoteData.userId;
-		if (config.onebotNameStyle !== 'name-only' && session.onebot) {
-			const onebot_groupmember_obj = await session.onebot.getGroupMemberInfo(quoteData.guildId, quoteData.userId);
-			const onebot_groupcard = onebot_groupmember_obj.card;
-			if (onebot_groupcard && onebot_groupcard.length > 0) {
-				switch (config.onebotNameStyle) {
+		if (config.nameStyle !== 'name-only' && session.onebot) {
+			const groupMemberInfo = await session.onebot.getGroupMemberInfo(quoteData.guildId, quoteData.userId);
+			const groupCard = groupMemberInfo.card;
+			if (groupCard && groupCard.length > 0) {
+				switch (config.nameStyle) {
 					case 'card-only':
-						usernameArg = onebot_groupcard;
+						usernameArg = groupCard;
 						break;
 					case 'name-card':
-						usernameArg = `${session_user_obj.name}（${onebot_groupcard}）`;
+						usernameArg = `${session_user_obj.name}（${groupCard}）`;
 						break;
 					case 'card-name':
-						usernameArg = `${onebot_groupcard}（${session_user_obj.name}）`;
+						usernameArg = `${groupCard}（${session_user_obj.name}）`;
 						break;
 				}
 			}
@@ -342,7 +509,7 @@ export function apply(ctx: Context, config: AwaQuoteImageConfig) {
 		const res = await renderQuoteImage(
 			ctx,
 			{
-				sentence: quoteData.content, username: usernameArg, userId: quoteData.userId, avatarBase64: avatar_base64,
+				sentence: renderQuoteContent, username: usernameArg, userId: quoteData.userId, avatarBase64: avatar_base64,
 				width: config.imageWidth, minHeight: config.imageMinHeight,
 				selectedStyle: selectedStyleDetailObj.styleKey, fontBase64: font_base64, enableDarkMode: selectedEnableDarkMode,
 				fontUnicodeRange,
