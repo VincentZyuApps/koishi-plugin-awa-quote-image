@@ -204,7 +204,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.experimental()
 			.default(false)
-			.description(' 是否使用插件从 Gitee/GitHub release 下载的 Twemoji 彩色 emoji 字体<br><i>开启：下载并校验 TwemojiCOLRv0.ttf 后注入渲染 CSS；关闭：不下载、不注入，使用系统 emoji 字体 fallback。</i> <br><i>⚠️ 实验性功能，可能不稳定；生产环境更建议关闭 enableReleaseEmojiFont，使用系统 emoji 字体。</i>'),
+			.description('😀 是否使用插件从 Gitee/GitHub release 下载的 Twemoji 彩色 emoji 字体<br><i>开启：下载并校验 TwemojiCOLRv0.ttf 后注入渲染 CSS；关闭：不下载、不注入，使用系统 emoji 字体 fallback。</i> <br><i>⚠️ 实验性功能，可能不稳定；生产环境更建议关闭 enableReleaseEmojiFont，使用系统 emoji 字体。</i>'),
 		emojiFontPath: Schema
 			.string()
 			.experimental()
@@ -232,7 +232,7 @@ export const Config: Schema<Config> = Schema.intersect([
 			.experimental()
 			.role('radio')
 			.default('database')
-			.description('🧠 QQ 引用消息缓存模式<br><i>磁盘模式使用 database 服务保存 REFIDX 映射，重启后仍可命中；如果未启用 database，会自动退回内存模式并输出警告。</i>'),
+			.description('🧠 QQ 引用消息缓存模式<br><i>磁盘模式使用 database 服务保存 REFIDX 映射，重启后仍可命中；如果未启用 database，会自动退回内存模式。</i>'),
 		qqQuoteCacheLimitPerChannelid: Schema
 			.number()
 			.experimental()

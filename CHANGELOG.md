@@ -1,5 +1,94 @@
 # 更新日志
 
+## 0.3.0-beta.13+20260704
+
+### 🧱 重构
+
+- 📦 package.json 版本升级到 `0.3.0-beta.13+20260704`。
+- 🧩 拆分主流程：
+  - `src/index.ts` 精简为插件入口、字体预检查、QQ 缓存初始化和命令注册编排。
+  - 新增 `src/commands/acs.ts`，集中注册样式列表指令。
+  - 新增 `src/commands/aqt.ts`，集中保留 `aqt` 主渲染流程。
+  - 新增 `src/quote.ts`，集中处理引用消息段解析、`@` 渲染、图片/表情 HTML 渲染。
+  - 新增 `src/user.ts`，集中处理用户资料、群名片显示、群头衔/等级徽章和头像下载。
+- 🎨 拆分渲染模板：
+  - 将四个 HTML/CSS 模板从 `src/render.ts` 拆到 `src/template/`。
+  - `render.ts` 仅保留 Puppeteer 出图、截图裁剪和模板分发逻辑。
+  - 模板 CSS 改为多行格式，后续调整样式时更容易定位。
+- 🤖 拆分 QQ 官方 Bot 逻辑：
+  - 删除顶层 `src/qq.ts`。
+  - 新增 `src/qq/` 目录，拆分为 `qq-button.ts`、`qq-markdown.ts`、`qq-cache.ts`、`qq-resolve.ts`、`qq-debug.ts`、`qq-types.ts`、`qq-utils.ts`。
+  - 保留 `src/qq/index.ts` 聚合导出，维持 `from './qq'` 的调用方式。
+
+### ✨ 新功能
+
+- 🧲 新增 `inlineMediaAlign` 配置项，用于控制引用消息中图片 / 表情与文字的垂直对齐方式：
+  - `top`：顶部对齐
+  - `middle`：中部对齐
+  - `bottom`：底部对齐，默认值，用于恢复旧版更接近底部对齐的观感
+- 📦 新增 `qqQuoteCacheLimitPerChannelid` 配置项：
+  - 默认 `500`
+  - 范围 `10` - `1000000`
+  - 用于控制每个 `channel_id` 的 QQ 引用缓存条数上限
+
+### 🔧 改进
+
+- 💾 QQ 引用缓存改为按 `channel_id` 分桶：
+  - 内存缓存使用 scoped key，避免不同频道 / 群的 REFIDX 互相覆盖。
+  - database 表新增 `channel_id` 字段。
+  - database 主键改为 `channel_id + ref_idx`。
+  - 内存缓存和 database 缓存都会按每个 `channel_id` 裁剪超限旧记录。
+- 💬 QQ 气泡样式调整：
+  - 保持最终输出宽度不变。
+  - 缩小容器四周内边距和头像间距。
+  - 放宽消息气泡可用宽度，让内容面积占比更大。
+- 📚 README 和 usage 同步补充 `inlineMediaAlign`、`qqQuoteCacheLimitPerChannelid` 等新增配置说明。
+
+### ✅ 验证
+
+- `yarn build awa-quote-image`
+- `git diff --check`
+
+---
+
+## 0.2.13-beta.10+20260704
+
+### 🐛 修复
+
+- 🖼️ 修复 `atRenderMode` 改造后引用消息出图内容被整体纯文本化的问题。
+  - 回归表现：原本可以渲染的图片、QQ 表情、动画表情退化成 `[图片]`、`[动画表情]`、`[表情描述]` 这类纯文本占位。
+  - 根因：`atRenderMode` 引入时为了处理 `@` 消息段，把引用消息元素统一转成纯文本，导致 `img` / `image` / `face` / `emoji` / `mface` 等非文本消息段也丢失了出图 HTML 表达能力。
+- 🔁 将引用消息内容拆成三路输出，避免日志、Markdown 和 Puppeteer 出图互相污染：
+  - `content`：干净纯文本，用于日志、QQ Markdown 和调试。
+  - `renderContent`：用于长度估算和普通渲染文本，可保留为了换行插入的零宽断点。
+  - `renderContentHtml`：用于 Puppeteer 出图，由白名单消息段生成受控 HTML。
+- 🧩 限定 `atRenderMode` 只影响 `at` 消息段，不再影响图片、QQ 表情、动画表情等其他消息段。
+- 🖼️ 恢复 `img` / `image` 段资源渲染：
+  - 优先读取 `src` / `url` / `file`。
+  - 生成受控 `<img class="quote-inline-image">`。
+  - 无可用资源时才 fallback 为 `[图片]`。
+- 😀 恢复 `face` / `emoji` / `mface` 段资源渲染：
+  - 优先读取自身资源 URL。
+  - 若自身没有资源，则尝试读取子级 `img` 资源。
+  - 无可用资源时才 fallback 为表情描述文本。
+- 🛡️ 补充出图 HTML 安全处理：
+  - 普通文本继续 HTML escape。
+  - 只允许 `http`、`https`、`data:image`、`file`、`base64://` 资源进入图片渲染。
+  - 将 `base64://` 转换为浏览器可渲染的 `data:image/png;base64,...`。
+- 📐 为内联图片、QQ 表情、动画表情补充布局样式，避免资源撑爆引用内容区域。
+
+### 🔧 改进
+
+- 📦 package.json 版本升级到 `0.2.13-beta.10+20260704`。
+- 📝 package 描述补充黑白样式说明。
+
+### ✅ 验证
+
+- `yarn build awa-quote-image`
+- `git diff --check`
+
+---
+
 ## 0.2.13-beta.9+20260704
 
 ### ✨ 新功能

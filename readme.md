@@ -165,7 +165,7 @@ aqt -v      # 显示详细信息 📊
 | `imageType` | `"png" \| "jpeg" \| "webp"` | `"png"` | 输出图片格式；PNG 不支持调整 quality |
 | `pageScreenshotQuality` | `number` | `60` | Puppeteer 截图质量，范围 0-100，对 PNG 无效 |
 | `showRenderInfo` | `boolean` | `false` | 发送图片时是否在消息末尾追加渲染耗时和样式信息 |
-| `enableReleaseEmojiFont` | `boolean` | `true` | 是否使用插件从 Gitee/GitHub release 下载的 Twemoji 彩色 emoji 字体；关闭后使用系统 emoji 字体 fallback |
+| `enableReleaseEmojiFont` | `boolean` | `false` | 是否使用插件从 Gitee/GitHub release 下载的 Twemoji 彩色 emoji 字体；关闭时使用系统 emoji 字体 fallback |
 | `emojiFontPath` | `string` | `process.cwd()/data/fonts/TwemojiCOLRv0.ttf` | TwemojiCOLRv0.ttf 字体路径；默认展示 cwd 路径，运行时自动映射到 `ctx.baseDir/data/fonts/TwemojiCOLRv0.ttf` |
 
 ### 🤖 QQ 官方 Bot 平台设置
@@ -210,10 +210,10 @@ aqt -v      # 显示详细信息 📊
 4. 📋 **需要的字体文件**：
    - `SourceHanSerifSC-SemiBold.otf` （思源宋体）📝
    - `LXGWWenKaiMono-Regular.ttf` （霞鹜文楷）✍️
-   - `TwemojiCOLRv0.ttf` （彩色 emoji，可在配置中关闭）😀
+   - `TwemojiCOLRv0.ttf` （彩色 emoji，可选；仅开启 `enableReleaseEmojiFont` 时需要）😀
 
 ### 🖥️ 使用系统 emoji 字体（Debian / Ubuntu 示例）
-如果你把 `enableReleaseEmojiFont` 设为 `false`，插件不会下载和注入 Twemoji 字体，会使用系统 emoji 字体 fallback。Debian / Ubuntu 可以这样安装：
+`enableReleaseEmojiFont` 默认关闭；关闭时插件不会下载和注入 Twemoji 字体，会使用系统 emoji 字体 fallback。Debian / Ubuntu 可以这样安装：
 
 ```bash
 apt update

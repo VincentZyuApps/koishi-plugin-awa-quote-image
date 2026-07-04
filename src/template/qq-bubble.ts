@@ -189,11 +189,11 @@ ${themeCss}
 #qq-bubble-container {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 2px;
     width: 700px;
     max-width: 700px;
     margin: 0 auto;
-    padding: 34px 36px;
+    padding: 3px;
 }
 
 .avatar {
@@ -211,20 +211,20 @@ ${themeCss}
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 1px;
 }
 
 .header-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 2px;
 }
 
 .group-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 3px 10px;
+    gap: 2px;
+    padding: 1px 3px;
     border-radius: 4px;
     font-size: 14px;
     font-weight: bold;
@@ -232,13 +232,13 @@ ${themeCss}
 }
 
 .badge-level-only {
-    padding: 3px 10px;
+    padding: 1px 3px;
 }
 
 .username-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 2px;
     flex-wrap: wrap;
 }
 
@@ -257,7 +257,7 @@ ${themeCss}
 
 .message-bubble {
     border-radius: 12px;
-    padding: 12px 16px;
+    padding: 3px 4px;
     position: relative;
     max-width: 100%;
     width: fit-content;
