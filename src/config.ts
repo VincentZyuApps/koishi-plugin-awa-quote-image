@@ -1,6 +1,6 @@
 import { Schema } from 'koishi'
 
-import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType } from './types'
+import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType, INLINE_MEDIA_ALIGNS, InlineMediaAlign } from './types'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
 import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './utils'
 
@@ -18,6 +18,7 @@ export interface Config {
 	// ===== 💬 会话设置 =====
 	enableQuote: boolean // 💬 是否引用触发指令的消息
 	enableWaitingHint: boolean // ⏳ 是否显示「渲染中，请等待...」提示
+	inlineMediaAlign: InlineMediaAlign // 🧲 引用消息内联图片/表情与文字的垂直对齐方式
 	atRenderMode: 'none' | 'nick' | 'username' // 🎯 引用消息 @ 段渲染方式
 	nameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name' // 🎭 用户名显示样式
 	showUserId: boolean // 🆔 是否在图片中显示用户 ID
@@ -38,6 +39,7 @@ export interface Config {
 	enableQQMarkdown: boolean // 💬 在 QQ 官方 Bot 平台发送图片时附带 Markdown + 按钮
 	qqMarkdownKeyboardJson: string // 📋 QQ Markdown 按钮 JSON 配置
 	qqQuoteCacheMode: 'database' | 'memory' // 🧠 QQ 引用消息缓存模式
+	qqQuoteCacheLimitPerChannelid: number // 📦 每个 channel_id 的 QQ 引用缓存条数上限
 	qqBotAppId: string // 🤖 QQ 官方 Bot 的 AppId（用于 qqapp 头像地址，如 102800160）
 	botUid?: string // @deprecated 旧配置里可能存在的 Bot QQ 号，用于 Bot 自身头像
 
@@ -69,6 +71,15 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.default(true)
 			.description('⏳ 是否启用「渲染中，请等待...」提示消息'),
+		inlineMediaAlign: Schema
+			.union([
+				Schema.const(INLINE_MEDIA_ALIGNS.TOP).description('⬆️ 顶部对齐'),
+				Schema.const(INLINE_MEDIA_ALIGNS.MIDDLE).description('↕️ 中部对齐'),
+				Schema.const(INLINE_MEDIA_ALIGNS.BOTTOM).description('⬇️ 底部对齐（默认）'),
+			])
+			.role('radio')
+			.default(INLINE_MEDIA_ALIGNS.BOTTOM)
+			.description('🧲 引用消息中图片 / 表情与文字的垂直对齐方式'),
 		atRenderMode: Schema
 			.union([
 				Schema.const('none').description('🚫 不渲染 @ 消息段'),
@@ -218,11 +229,19 @@ export const Config: Schema<Config> = Schema.intersect([
 				Schema.const('database').description('💾 磁盘缓存（推荐，需要 database 服务）'),
 				Schema.const('memory').description('🧠 内存缓存（重启后清空）'),
 			])
+			.experimental()
 			.role('radio')
 			.default('database')
 			.description('🧠 QQ 引用消息缓存模式<br><i>磁盘模式使用 database 服务保存 REFIDX 映射，重启后仍可命中；如果未启用 database，会自动退回内存模式并输出警告。</i>'),
+		qqQuoteCacheLimitPerChannelid: Schema
+			.number()
+			.experimental()
+			.min(10).max(1000000).step(10)
+			.default(500)
+			.description('📦 每个 channel_id 的 QQ 引用缓存条数上限<br><i>内存缓存和 database 缓存都会按 channel_id 分桶裁剪。</i>'),
 		qqBotAppId: Schema
 			.string()
+			.experimental()
 			.default('')
 			.description('🤖 QQ 官方 Bot 的 AppId（用于拼接 qqapp 头像地址）<br><i>留空则自动从 bot.config.id 获取</i>'),
 	}).description('🤖 QQ 官方 Bot 平台设置'),

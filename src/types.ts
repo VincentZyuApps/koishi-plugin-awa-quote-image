@@ -18,3 +18,11 @@ export const IMAGE_TYPES = {
 } as const;
 
 export type ImageType = typeof IMAGE_TYPES[keyof typeof IMAGE_TYPES];
+
+export const INLINE_MEDIA_ALIGNS = {
+    TOP: 'top',
+    MIDDLE: 'middle',
+    BOTTOM: 'bottom',
+} as const;
+
+export type InlineMediaAlign = typeof INLINE_MEDIA_ALIGNS[keyof typeof INLINE_MEDIA_ALIGNS];

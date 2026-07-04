@@ -57,6 +57,7 @@ export const usage = `
   <li>🚫 如果无法获取被引用作者完整的 <code>content / userId / username / avatar</code>，会直接报错并停止渲染。</li>
   <li>🚫 不会 fallback 到触发 <code>aqt</code> 指令的用户，避免引用 A 的消息却渲染成 B 的头像和昵称。</li>
   <li>💾 <code>qqQuoteCacheMode</code> 支持 <code>database</code> / <code>memory</code>，默认 <code>database</code>。</li>
+  <li>📦 <code>qqQuoteCacheLimitPerChannelid</code> 控制每个 <code>channel_id</code> 的 QQ 引用缓存条数上限，默认 <code>500</code>。</li>
   <li>🤖 <code>qqBotAppId</code> 用于拼接 QQ 官方 Bot 头像地址；留空则读取适配器的 <code>bot.config.id</code>。</li>
 </ul>
 

@@ -121,6 +121,7 @@ aqt -v      # 显示详细信息 📊
 
 - `qqBotAppId`: QQ 官方 Bot AppId，用于拼接 `https://q.qlogo.cn/qqapp/{appId}/{openid}/640` 头像地址；留空则读取适配器的 `bot.config.id`。
 - `qqQuoteCacheMode`: QQ 引用缓存模式，支持 `database` / `memory`，默认 `database`。
+- `qqQuoteCacheLimitPerChannelid`: 每个 `channel_id` 的 QQ 引用缓存条数上限，默认 `500`。
 - `enableQQMarkdown`: QQ 平台发送图片后是否附带 Markdown + 按钮消息。
 - `qqMarkdownKeyboardJson`: 自定义 QQ Markdown 按钮 JSON。
 
@@ -144,6 +145,7 @@ aqt -v      # 显示详细信息 📊
 |---|---|---|---|
 | `enableQuote` | `boolean` | `true` | bot 发送消息时是否引用触发指令的消息 |
 | `enableWaitingHint` | `boolean` | `true` | 是否显示“正在渲染，请稍候”的等待提示 |
+| `inlineMediaAlign` | `"top" \| "middle" \| "bottom"` | `"bottom"` | 引用消息中图片 / 表情与文字的垂直对齐方式 |
 | `atRenderMode` | `"none" \| "nick" \| "username"` | `"nick"` | 引用消息中 @ 消息段的渲染方式 |
 | `nameStyle` | `"name-only" \| "card-only" \| "name-card" \| "card-name"` | `"name-card"` | 用户名显示样式；群名片需要平台支持群成员资料查询，不支持时显示用户名 |
 | `showUserId` | `boolean` | `true` | 是否在图片中显示用户 ID，建议保持开启，降低伪造聊天记录风险 |
@@ -173,6 +175,7 @@ aqt -v      # 显示详细信息 📊
 | `enableQQMarkdown` | `boolean` | `true` | QQ 平台发送图片后是否附带 Markdown + 按钮消息 |
 | `qqMarkdownKeyboardJson` | `string` | 默认键盘 JSON | QQ Markdown 按钮 JSON 配置，支持变量 `${aqtCommandName}` `${acsCommandName}` `${userId}` |
 | `qqQuoteCacheMode` | `"database" \| "memory"` | `"database"` | QQ 引用消息缓存模式；`database` 使用 Koishi database 服务，`memory` 重启后清空 |
+| `qqQuoteCacheLimitPerChannelid` | `number` | `500` | 每个 `channel_id` 的 QQ 引用缓存条数上限，范围 10-1000000 |
 | `qqBotAppId` | `string` | `""` | QQ 官方 Bot AppId，用于拼接 `q.qlogo.cn/qqapp/{appId}/{openid}/640` 头像地址；留空则读取 `bot.config.id` |
 
 ### 🐛 调试设置
