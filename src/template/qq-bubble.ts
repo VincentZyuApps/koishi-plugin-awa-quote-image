@@ -189,16 +189,16 @@ ${themeCss}
 #qq-bubble-container {
     display: flex;
     align-items: flex-start;
-    gap: 2px;
-    width: 700px;
-    max-width: 700px;
+    gap: 13px;
+    width: 720px;
+    max-width: 720px;
     margin: 0 auto;
-    padding: 3px;
+    padding: 25px;
 }
 
 .avatar {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
     flex-shrink: 0;
     background-image: url(data:image/png;base64,${options.avatarBase64});
@@ -211,20 +211,20 @@ ${themeCss}
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 5px;
 }
 
 .header-row {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 8px;
 }
 
 .group-badge {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    padding: 1px 3px;
+    gap: 4px;
+    padding: 2px 6px;
     border-radius: 4px;
     font-size: 14px;
     font-weight: bold;
@@ -232,13 +232,13 @@ ${themeCss}
 }
 
 .badge-level-only {
-    padding: 1px 3px;
+    padding: 2px 6px;
 }
 
 .username-row {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
@@ -253,11 +253,12 @@ ${themeCss}
 
 .userid {
     font-size: ${userIdFontSize}px;
+    line-height: 1.1;
 }
 
 .message-bubble {
     border-radius: 12px;
-    padding: 3px 4px;
+    padding: 13px 17px;
     position: relative;
     max-width: 100%;
     width: fit-content;
@@ -285,12 +286,14 @@ ${themeCss}
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 0;
+    margin-top: 3px;
     font-size: 16px;
+    line-height: 1.1;
 }
 
 .timestamp {
     font-size: 16px;
+    line-height: 1.1;
 }
 `;
 
