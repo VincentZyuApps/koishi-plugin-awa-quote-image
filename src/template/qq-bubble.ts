@@ -63,7 +63,16 @@ const getInlineResourceCss = (options: TemplateOptions) => `
 }
 
 .quote-inline-emoji {
-    max-height: 1.6em;
+    width: auto;
+    height: 1.45em;
+    max-height: 1.45em;
+    border-radius: 0;
+}
+
+.quote-inline-mface {
+    width: auto;
+    height: 1.45em;
+    max-height: 1.45em;
     border-radius: 0;
 }
 `;
@@ -190,10 +199,10 @@ ${themeCss}
     display: flex;
     align-items: flex-start;
     gap: 13px;
-    width: 720px;
-    max-width: 720px;
+    width: 777px;
+    max-width: 777px;
     margin: 0 auto;
-    padding: 25px;
+    padding: 35px;
 }
 
 .avatar {
@@ -315,7 +324,7 @@ ${themeCss}
             <div class="message-bubble">
                 <div class="sentence">${htmlText.sentence}</div>
             </div>
-            ${options.showUserId ? `<div class="userid">(ID: ${htmlText.userId})</div>` : ''}
+            ${options.showUserId ? `<div class="userid">(UserId: ${htmlText.userId})</div>` : ''}
             ${options.showTimestamp ? `<div class="metadata"><div class="timestamp">${htmlText.timestamp}</div></div>` : ''}
         </div>
     </div>

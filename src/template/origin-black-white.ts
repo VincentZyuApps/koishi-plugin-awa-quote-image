@@ -93,7 +93,16 @@ const getCommonCss = (options: TemplateOptions) => `
 }
 
 .quote-inline-emoji {
-    max-height: 1.6em;
+    width: auto;
+    height: 1.45em;
+    max-height: 1.45em;
+    border-radius: 0;
+}
+
+.quote-inline-mface {
+    width: auto;
+    height: 1.45em;
+    max-height: 1.45em;
     border-radius: 0;
 }
 `;
