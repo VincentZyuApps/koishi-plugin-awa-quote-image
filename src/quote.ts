@@ -207,7 +207,7 @@ export async function resolveQuoteContentForRender(
 			if (mode !== 'html') return fallbackText
 
 			const src = pickResourceUrl(attrs)
-			return src ? renderInlineImageHtml(src, fallbackText) : escapeHtmlText(fallbackText)
+			return src ? renderInlineImageHtml(src, fallbackText, 'quote-message-image') : escapeHtmlText(fallbackText)
 		}
 		if (type === 'audio') {
 			const text = '[语音]'

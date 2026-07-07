@@ -53,6 +53,17 @@ ${emojiFontFace}`;
 const FONT_STACK = `'CustomFont', 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif, 'TwemojiCOLR', 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'`;
 
 const getInlineResourceCss = (options: TemplateOptions) => `
+.quote-message-image {
+    display: inline-block;
+    max-width: 100%;
+    max-height: 420px;
+    width: min(100%, 360px);
+    height: auto;
+    object-fit: contain;
+    vertical-align: ${options.inlineMediaAlign};
+    border-radius: 6px;
+}
+
 .quote-inline-image {
     max-width: 100%;
     max-height: 8em;

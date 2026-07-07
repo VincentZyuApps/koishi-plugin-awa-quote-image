@@ -83,6 +83,17 @@ const getCommonCss = (options: TemplateOptions) => `
     word-break: normal;
 }
 
+.quote-message-image {
+    display: inline-block;
+    max-width: 100%;
+    max-height: 720px;
+    width: min(100%, 520px);
+    height: auto;
+    object-fit: contain;
+    vertical-align: ${options.inlineMediaAlign};
+    border-radius: 6px;
+}
+
 .quote-inline-image {
     max-width: 100%;
     max-height: 8em;
