@@ -7,7 +7,7 @@ import { Config as ConfigSchema } from './config'
 import { registerAcsCommand } from './commands/acs'
 import { registerAqtCommand } from './commands/aqt'
 import { registerQQQuoteCacheMiddleware, setupQQQuoteCacheDatabase } from './qq'
-import { checkAndDownloadFonts } from './utils'
+import { checkAndDownloadFonts } from './font'
 
 export const inject = {
 	required: ['puppeteer', 'http'],

@@ -262,7 +262,7 @@ export async function downloadFont(ctx: Context, pluginName: string, url: string
   throw new Error(`字体文件下载失败 ${fileName}，Gitee / GitHub 均不可用或校验失败: ${lastError instanceof Error ? lastError.message : lastError}`)
 }
 
-export async function fileToBase64(ctx: Context, pluginName: string, filePath: string): Promise<string> {
+export async function fontFileToBase64(ctx: Context, pluginName: string, filePath: string): Promise<string> {
   try {
     const runtimePath = resolveRuntimeFontPath(ctx, filePath)
     const absolutePath = path.isAbsolute(runtimePath) ? runtimePath : path.resolve(__dirname, runtimePath)
@@ -274,7 +274,7 @@ export async function fileToBase64(ctx: Context, pluginName: string, filePath: s
   }
 }
 
-export async function fileToBase64WithFallback(
+export async function fontFileToBase64WithFallback(
   ctx: Context,
   pluginName: string,
   filePath: string,
@@ -284,7 +284,7 @@ export async function fileToBase64WithFallback(
 
   try {
     return {
-      fontBase64: await fileToBase64(ctx, pluginName, runtimeFontPath),
+      fontBase64: await fontFileToBase64(ctx, pluginName, runtimeFontPath),
       usedFontPath: runtimeFontPath,
       fallbackUsed: false,
     }
@@ -294,7 +294,7 @@ export async function fileToBase64WithFallback(
       throw new Error(`默认字体不可用，无法 fallback: source=${runtimeFontPath}, fallback=${fallbackFontPath}, error=${error instanceof Error ? error.message : error}`)
     }
     return {
-      fontBase64: await fileToBase64(ctx, pluginName, fallbackFontPath),
+      fontBase64: await fontFileToBase64(ctx, pluginName, fallbackFontPath),
       usedFontPath: fallbackFontPath,
       fallbackUsed: true,
       error,

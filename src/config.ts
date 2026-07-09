@@ -2,7 +2,7 @@ import { Schema } from 'koishi'
 
 import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType, INLINE_MEDIA_ALIGNS, InlineMediaAlign } from './types'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
-import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './utils'
+import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './font'
 
 export interface ImageStyleDetail {
 	styleKey: ImageStyleKey // 🖌️ 图片渲染样式 key

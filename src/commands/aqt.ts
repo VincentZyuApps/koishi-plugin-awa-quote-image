@@ -5,11 +5,11 @@ import { IMAGE_STYLE_KEY_ARR } from '../types'
 import {
 	checkAndDownloadFonts,
 	DEFAULT_SOURCE_HAN_SERIF_PATH,
-	fileToBase64,
-	fileToBase64WithFallback,
+	fontFileToBase64,
+	fontFileToBase64WithFallback,
 	resolveRuntimeFontPath,
 	SOURCE_HAN_SERIF_FILE_NAME,
-} from '../utils'
+} from '../font'
 import { resolveQuoteContentForRender, QuoteData } from '../quote'
 import {
 	downloadAvatarBase64,
@@ -207,14 +207,14 @@ export function registerAqtCommand(
 		}
 
 		const selectedFontPath = resolveRuntimeFontPath(ctx, selectedStyleDetailObj.fontPath)
-		const fontResult = await fileToBase64WithFallback(ctx, PLUGIN_NAME, selectedFontPath)
+		const fontResult = await fontFileToBase64WithFallback(ctx, PLUGIN_NAME, selectedFontPath)
 		const fontBase64 = fontResult.fontBase64
 		const fontUnicodeRange = isSourceHanSerifFontPath(fontResult.usedFontPath)
 			? SOURCE_HAN_SERIF_CJK_UNICODE_RANGE
 			: undefined
 		const emojiFontPath = resolveRuntimeFontPath(ctx, config.emojiFontPath)
 		const emojiFontBase64 = config.enableReleaseEmojiFont
-			? await fileToBase64(ctx, PLUGIN_NAME, emojiFontPath)
+			? await fontFileToBase64(ctx, PLUGIN_NAME, emojiFontPath)
 			: ''
 		if (fontResult.fallbackUsed) {
 			const fallbackMsg = `⚠️ 字体读取失败，已 fallback 到默认字体: source=${selectedFontPath}, fallback=${fontResult.usedFontPath}, error=${fontResult.error}`
