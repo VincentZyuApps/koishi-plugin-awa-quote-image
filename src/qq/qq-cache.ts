@@ -103,6 +103,7 @@ function cacheQQMessageFromSession(session: Session, config: Config): boolean {
 async function pruneQQQuoteCacheDatabase(ctx: Context, channelId: string, limit: number) {
   const expiredRows = await ctx.database.get(QQ_QUOTE_CACHE_TABLE, { channel_id: channelId }, {
     sort: { updated_at: 'desc' },
+    limit: -1,
     offset: limit,
   })
   await Promise.all(expiredRows.map((row) => ctx.database.remove(QQ_QUOTE_CACHE_TABLE, {
