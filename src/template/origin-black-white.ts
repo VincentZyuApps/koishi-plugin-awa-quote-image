@@ -1,26 +1,9 @@
 import type { TemplateOptions } from '../render';
+import { formatTimestamp } from '../utils/time';
+import { escapeHtmlText } from '../utils/html';
 
 const getFontSize = (sentenceLength: number, baseSize: number, decreaseRate: number, threshold: number) =>
     sentenceLength < threshold ? baseSize - decreaseRate * sentenceLength : baseSize - decreaseRate * threshold;
-
-const getTimestamp = () => {
-    return new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-};
-
-const escapeHtmlText = (value: unknown) => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 
 const getEscapedTemplateText = (options: Pick<TemplateOptions, 'sentence' | 'sentenceHtml' | 'username' | 'userId'>, timestamp: string) => ({
     sentence: options.sentenceHtml ?? escapeHtmlText(options.sentence),
@@ -123,7 +106,7 @@ export const getOriginBlackWhiteTemplateStr = async (options: TemplateOptions): 
     const sentenceFontSize = getFontSize(sentenceLength, 100, 0.40, 100);
     const usernameFontSize = getFontSize(sentenceLength, 90, 0.36, 100);
     const userIdFontSize = getFontSize(sentenceLength, 60, 0.28, 100);
-    const timestamp = getTimestamp();
+    const timestamp = formatTimestamp(options.timezoneOffset);
     const preserveNewlinesCss = options.preserveNewlines ? 'white-space: pre-wrap;' : '';
     const htmlText = getEscapedTemplateText(options, timestamp);
 

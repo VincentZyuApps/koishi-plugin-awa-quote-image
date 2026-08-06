@@ -1,26 +1,9 @@
 import type { TemplateOptions } from '../render';
+import { formatTimestamp } from '../utils/time';
+import { escapeHtmlText } from '../utils/html';
 
 const getFontSize = (sentenceLength: number, baseSize: number, decreaseRate: number, threshold: number) =>
     sentenceLength < threshold ? baseSize - decreaseRate * sentenceLength : baseSize - decreaseRate * threshold;
-
-const getTimestamp = () => {
-    return new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-};
-
-const escapeHtmlText = (value: unknown) => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 
 const getEscapedTemplateText = (options: Pick<TemplateOptions, 'sentence' | 'sentenceHtml' | 'username' | 'userId'>, timestamp: string) => ({
     sentence: options.sentenceHtml ?? escapeHtmlText(options.sentence),
@@ -107,7 +90,7 @@ export const getQqBubbleTemplateStr = async (options: TemplateOptions): Promise<
     const sentenceFontSize = Math.max(getFontSize(sentenceLength, 32, 0.15, 80), 24);
     const usernameFontSize = Math.max(getFontSize(sentenceLength, 26, 0.12, 80), 20);
     const userIdFontSize = Math.max(getFontSize(sentenceLength, 20, 0.10, 80), 16);
-    const timestamp = getTimestamp();
+    const timestamp = formatTimestamp(options.timezoneOffset);
     const preserveNewlinesCss = options.preserveNewlines ? 'white-space: pre-wrap;' : '';
     const htmlText = getEscapedTemplateText(options, timestamp);
     const groupBadgeHtml = getGroupBadgeHtml(options);

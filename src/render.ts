@@ -21,6 +21,7 @@ export interface TemplateOptions {
     enableDarkMode: boolean;
     showUserId: boolean;
     showTimestamp: boolean;
+    timezoneOffset: number;
     preserveNewlines: boolean;
     groupBadgeInfo?: {
         levelText: string;
@@ -143,7 +144,7 @@ export async function renderQuoteImage(
         inlineMediaAlign: InlineMediaAlign,
         imageType: ImageType,           enablePageScreenshotQuality: number,
         verboseConsoleLog?: boolean,
-        showUserId: boolean,            showTimestamp: boolean,
+        showUserId: boolean,            showTimestamp: boolean,           timezoneOffset: number,
         preserveNewlines: boolean,
         groupBadgeInfo?: {
             levelText: string;
@@ -171,6 +172,7 @@ export async function renderQuoteImage(
             enableDarkMode: args.enableDarkMode,
             showUserId: args.showUserId,
             showTimestamp: args.showTimestamp,
+            timezoneOffset: args.timezoneOffset,
             preserveNewlines: args.preserveNewlines,
             groupBadgeInfo: args.groupBadgeInfo,
         };

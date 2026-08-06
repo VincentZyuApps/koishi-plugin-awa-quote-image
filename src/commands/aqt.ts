@@ -9,7 +9,7 @@ import {
 	fontFileToBase64WithFallback,
 	resolveRuntimeFontPath,
 	SOURCE_HAN_SERIF_FILE_NAME,
-} from '../font'
+} from '../utils/font'
 import { resolveQuoteContentForRender, QuoteData } from '../quote'
 import {
 	downloadAvatarBase64,
@@ -260,6 +260,7 @@ export function registerAqtCommand(
 				verboseConsoleLog: config.verboseConsoleLog || options.verbose,
 				showUserId: config.showUserId !== false,
 				showTimestamp: config.showTimestamp !== false,
+				timezoneOffset: config.timezoneOffset,
 				preserveNewlines: options.newlines !== false,
 				groupBadgeInfo,
 			},

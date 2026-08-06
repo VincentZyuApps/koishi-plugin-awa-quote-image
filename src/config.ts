@@ -2,7 +2,7 @@ import { Schema } from 'koishi'
 
 import { IMAGE_STYLES, ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, ImageType, INLINE_MEDIA_ALIGNS, InlineMediaAlign } from './types'
 import { stringifyCompact, DEFAULT_KEYBOARD_ROWS } from './qq'
-import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './font'
+import { DEFAULT_LXGW_WENKAI_PATH, DEFAULT_SOURCE_HAN_SERIF_PATH, DEFAULT_TWEMOJI_COLR_PATH } from './utils/font'
 
 export interface ImageStyleDetail {
 	styleKey: ImageStyleKey // 🖌️ 图片渲染样式 key
@@ -23,6 +23,7 @@ export interface Config {
 	nameStyle: 'name-only' | 'card-only' | 'name-card' | 'card-name' // 🎭 用户名显示样式
 	showUserId: boolean // 🆔 是否在图片中显示用户 ID
 	showTimestamp: boolean // 🕐 是否在图片中显示时间戳
+	timezoneOffset: number // 🕐 时间戳时区偏移（GMT+x），默认 8
 	showGroupTitleInQqBubble: boolean // 🏷️ 是否在 QQ气泡样式中显示群头衔（仅OneBot 平台且使用 QQ气泡样式时生效）
 
 	// ===== 🖼️ 图片渲染配置 =====
@@ -107,6 +108,10 @@ export const Config: Schema<Config> = Schema.intersect([
 			.boolean()
 			.default(true)
 			.description('🕐 是否在图片中显示时间戳 —— **强烈建议保持开启**，防止篡改时间伪造聊天记录，关闭后果自负，与作者无关 ⚠️'),
+		timezoneOffset: Schema
+			.number()
+			.default(8)
+			.description('🕐 时间戳时区偏移 GMT+x，有效范围 -12 ~ 14，超出范围则跟随系统时区'),
 		showGroupTitleInQqBubble: Schema
 			.boolean()
 			.default(true)
