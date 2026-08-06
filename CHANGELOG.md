@@ -1,5 +1,102 @@
 # 更新日志
 
+## 0.3.1-beta.1+20260806
+
+### ✨ 新功能
+
+- 🕐 新增 `timezoneOffset` 配置项，支持自定义时间戳时区（GMT+x）：
+  - 默认值 `8`（北京时间）
+  - 有效范围 `-12` ~ `14`，超出范围自动 fallback 到系统本地时区
+
+### 🧱 重构
+
+- 📦 新建 `src/utils/` 目录，抽取公共工具模块：
+  - `src/utils/time.ts`：抽取 `formatTimestamp()`，消除 4 个模板重复代码
+  - `src/utils/html.ts`：抽取 `escapeHtmlText` / `escapeHtmlAttr` / `pickNonEmptyString`，消除 5 处重复定义
+  - 迁移 `src/font.ts` → `src/utils/font.ts`，更新相关 import 路径
+- 🔁 重构 4 个模板文件，改为 import 公共工具函数
+- 🔁 重构 `quote.ts`，改为 import `utils/html` 公共函数
+
+### 🐛 修复
+
+- 🗄️ 合并 PR #2：修复消息入库时 `offset` 不加 `limit` 导致的语法错误（by @IsHPDuwu）
+
+---
+
+## 0.3.0+20260802
+
+### 🔧 改进
+
+- 📦 版本从 `0.3.0-rc.1+20260709` 升级至 `0.3.0+20260802`
+- 🔗 更新 README 与 usage 的 QQ 群邀请链接为 `ZHj33L5cuC`
+
+---
+
+## 0.3.0-rc.1+20260709
+
+### 🧱 重构
+
+- 📦 版本从 `0.3.0-beta.16+20260708` 升级到 `0.3.0-rc.1+20260709`
+- 📁 将 `src/utils.ts` 重命名为 `src/font.ts`，明确模块职责集中在字体下载、校验、路径解析与 Base64 读取
+- 🔁 将 `fileToBase64` / `fileToBase64WithFallback` 重命名为 `fontFileToBase64` / `fontFileToBase64WithFallback`
+- 🔁 同步更新 `aqt`、`config`、`index` 中的字体模块导入路径
+
+### 📚 文档
+
+- 📖 README 顶部补充 GitHub / Gitee 阅读提示，方便跳转到仓库页面获得更好阅读体验
+
+---
+
+## 0.3.0-beta.16+20260708
+
+### 🐛 修复
+
+- 🖼️ 放大引用图片消息段渲染尺寸：
+  - 将 `img` / `image` 引用消息段输出为独立的 `quote-message-image` 样式
+  - 避免普通图片继续复用 `quote-inline-image` 的内联资源尺寸限制
+  - 原始黑白、现代思源、简洁文楷模板：图片宽度 `min(100%, 520px)`，高度限制 `720px`
+  - QQ 气泡模板：图片宽度 `min(100%, 360px)`，高度限制 `420px`
+  - 保留 emoji / face / mface 的内联小图尺寸
+
+### 🔧 改进
+
+- 📦 版本升级到 `0.3.0-beta.16+20260708`
+
+---
+
+## 0.3.0-beta.15+20260707
+
+### 🎨 样式
+
+- 📦 版本升级到 `0.3.0-beta.15+20260707`
+- 😊 统一各模板内联 emoji 与 mface 的高度为 `1.45em`
+- 🎭 为各模板补充 `quote-inline-mface` 样式，避免 mface 表情撑高排版
+- 💬 QQ 气泡外层四周留白放宽：容器宽度调整为 `777px`，padding 调整为 `35px`
+- 🏷️ QQ 气泡用户编号标签从 `ID` 调整为 `UserId`
+
+### 📚 文档
+
+- 🏷️ 为 README 的 npm 版本与下载量徽章补充 npm logo
+- 🌿 将 README 的 Koishi Forum 徽章切换为内嵌 Koishi logo
+- 📋 usage 页同步 npm logo 与 Koishi Forum logo
+
+---
+
+## 0.3.0-beta.14+20260704
+
+### 🎨 样式
+
+- 📦 版本升级到 `0.3.0-beta.14+20260704`
+- 💬 调整 QQ 气泡样式整体布局：
+  - 容器宽度从 `700px` 调整到 `720px`，外层 padding 从 `3px` 调整到 `25px`
+  - 头像尺寸从 `80px` 调整到 `88px`，头像与内容间距从 `2px` 调整到 `13px`
+  - 内容区纵向间距从 `1px` 调整到 `5px`，头部用户名与群头衔间距从 `2px` 调整到 `8px`
+  - 消息气泡内部 padding 从 `3px 4px` 调整到 `13px 17px`
+  - 优化群头衔徽章间距：gap 从 `2px` 调整到 `4px`，padding 从 `1px 3px` 调整到 `2px 6px`
+  - 为 ID 和时间戳增加 `line-height: 1.1`，时间信息区 margin-top 调整为 `3px`
+
+---
+
 ## 0.3.0-beta.13+20260704
 
 ### 🧱 重构

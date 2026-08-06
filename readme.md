@@ -1,4 +1,4 @@
-> 推荐前往 [GitHub](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image) 或 [Gitee](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image) 阅读 README，体验更好。
+> 💡 推荐前往 [GitHub](https://github.com/VincentZyuApps/koishi-plugin-awa-quote-image) 或 [Gitee](https://gitee.com/vincent-zyu/koishi-plugin-awa-quote-image) 阅读 README，体验更好。
 
 > **[📖 查看完整更新日志（含 fork 版本与上游版本历史）→](./CHANGELOG.md)**
 
