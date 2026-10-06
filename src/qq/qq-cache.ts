@@ -23,30 +23,42 @@ function isScopedKeyInChannel(key: string, channelId: string) {
 }
 
 function pruneQQMemoryCacheForChannel(channelId: string, limit: number) {
-  let msgCount = 0
+  const msgKeys: string[] = []
   for (const key of msgCache.keys()) {
-    if (!isScopedKeyInChannel(key, channelId)) continue
-    msgCount++
-    if (msgCount > limit) msgCache.delete(key)
+    if (isScopedKeyInChannel(key, channelId)) msgKeys.push(key)
   }
-
-  let refCount = 0
-  for (const [key, messageId] of refIdxToMsgIdCache.entries()) {
-    if (!isScopedKeyInChannel(key, channelId)) continue
-    refCount++
-    if (refCount > limit) {
-      refIdxToMsgIdCache.delete(key)
-      msgIdToRefIdxCache.delete(scopedCacheKey(channelId, messageId))
+  if (msgKeys.length > limit) {
+    const toDeleteCount = msgKeys.length - limit
+    for (let i = 0; i < toDeleteCount; i++) {
+      msgCache.delete(msgKeys[i])
     }
   }
 
-  let messageCount = 0
-  for (const [key, refIdx] of msgIdToRefIdxCache.entries()) {
-    if (!isScopedKeyInChannel(key, channelId)) continue
-    messageCount++
-    if (messageCount > limit) {
+  const refKeys: string[] = []
+  for (const key of refIdxToMsgIdCache.keys()) {
+    if (isScopedKeyInChannel(key, channelId)) refKeys.push(key)
+  }
+  if (refKeys.length > limit) {
+    const toDeleteCount = refKeys.length - limit
+    for (let i = 0; i < toDeleteCount; i++) {
+      const key = refKeys[i]
+      const messageId = refIdxToMsgIdCache.get(key)
+      refIdxToMsgIdCache.delete(key)
+      if (messageId) msgIdToRefIdxCache.delete(scopedCacheKey(channelId, messageId))
+    }
+  }
+
+  const msgIdKeys: string[] = []
+  for (const key of msgIdToRefIdxCache.keys()) {
+    if (isScopedKeyInChannel(key, channelId)) msgIdKeys.push(key)
+  }
+  if (msgIdKeys.length > limit) {
+    const toDeleteCount = msgIdKeys.length - limit
+    for (let i = 0; i < toDeleteCount; i++) {
+      const key = msgIdKeys[i]
+      const refIdx = msgIdToRefIdxCache.get(key)
       msgIdToRefIdxCache.delete(key)
-      refIdxToMsgIdCache.delete(scopedCacheKey(channelId, refIdx))
+      if (refIdx) refIdxToMsgIdCache.delete(scopedCacheKey(channelId, refIdx))
     }
   }
 }
@@ -103,9 +115,10 @@ function cacheQQMessageFromSession(session: Session, config: Config): boolean {
 async function pruneQQQuoteCacheDatabase(ctx: Context, channelId: string, limit: number) {
   const expiredRows = await ctx.database.get(QQ_QUOTE_CACHE_TABLE, { channel_id: channelId }, {
     sort: { updated_at: 'desc' },
-    limit: -1,
+    limit: 100000,
     offset: limit,
   })
+  if (!expiredRows || expiredRows.length === 0) return
   await Promise.all(expiredRows.map((row) => ctx.database.remove(QQ_QUOTE_CACHE_TABLE, {
     channel_id: row.channel_id,
     ref_idx: row.ref_idx,
