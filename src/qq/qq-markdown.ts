@@ -1,5 +1,3 @@
-import { h } from 'koishi'
-
 export function buildQuoteMarkdown(content: string, username: string): string {
   return [
     `> ${content}`,
@@ -9,28 +7,32 @@ export function buildQuoteMarkdown(content: string, username: string): string {
 }
 
 export async function sendQQMarkdown(session: any, markdown: string, keyboard: object, throwOnError = false): Promise<void> {
+  if (!['qq', 'qqguild'].includes(session.platform)) return
   try {
-    if (session.bot?.config?.autoStreamText) {
-      await session.send(h('qq:rawmarkdown', { content: markdown, keyboard }))
+    const payload: any = {
+      msg_type: 2,
+      markdown: { content: markdown },
+    }
+    if ((keyboard as any)?.rows?.length) {
+      payload.keyboard = { content: keyboard }
+    }
+
+    const msgId = session.messageId
+    if (msgId) {
+      const now = Date.now()
+      const msgTime = session.timestamp ?? now
+      if (now - msgTime < 5 * 60 * 1000 - 2000) {
+        session.seq ||= 0
+        payload.msg_id = msgId
+        payload.msg_seq = ++session.seq
+      }
+    }
+
+    const isDirect = session.isDirect || session.channelId?.includes?.('_')
+    if (isDirect) {
+      const targetUserId = session.userId || session.channelId?.split?.('_')?.[0]
+      await session.bot.internal.sendPrivateMessage(targetUserId, payload)
     } else {
-      const payload: any = {
-        msg_type: 2,
-        markdown: { content: markdown },
-      }
-      if ((keyboard as any)?.rows?.length) {
-        payload.keyboard = { content: keyboard }
-      }
-
-      const msgId = session.messageId
-      if (msgId) {
-        const now = Date.now()
-        const msgTime = session.timestamp ?? now
-        if (now - msgTime < 300000) {
-          payload.msg_id = msgId
-          payload.msg_seq = Math.floor(Math.random() * 0xffffff) + 1
-        }
-      }
-
       await session.bot.internal.sendMessage(session.channelId, payload)
     }
   } catch (error) {
